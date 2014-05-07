@@ -16,11 +16,10 @@
 
     <testsuites>
         <testsuite name="Gameo Test Suite">
-            <!--<directory>lib/*/*/Tests</directory>-->
             <file>lib/LRezek/Neo4j/Tests/QueryTest.php</file>
-            <!--<file>lib/LRezek/Neo4j/Tests/EntityManagerTest.php</file>
+            <file>lib/LRezek/Neo4j/Tests/EntityManagerTest.php</file>
             <file>lib/LRezek/Neo4j/Tests/MetaTest.php</file>
-            <file>lib/LRezek/Neo4j/Tests/RepositoryTest.php</file>-->
+            <file>lib/LRezek/Neo4j/Tests/RepositoryTest.php</file>
         </testsuite>
     </testsuites>
 
