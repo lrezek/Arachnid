@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpdoc>
+    <title>Neo4j PHP OGM</title>
+    <parser>
+        <target>docs</target>
+        <extensions>
+            <extension>php</extension>
+        </extensions>
+        <visibility></visibility>
+    </parser>
+    <transformer>
+        <target>docs</target>
+    </transformer>
+    <transformations>
+        <template name="responsive" />
+    </transformations>
+    <files>
+        <directory>lib/LRezek/Neo4j</directory>
+        <ignore>lib/LRezek/Neo4j/Tests/*</ignore>
+    </files>
+</phpdoc>

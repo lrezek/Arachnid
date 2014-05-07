@@ -1,0 +1,22 @@
+{
+    "name": "lrezek/neo4j-php-ogm",
+    "type": "library",
+    "description": "PHP Object Graph Mapper for Neo4J",
+    "keywords": ["neo4j","graph","database","entity-mapper","doctrine"],
+    "homepage": "https://github.com/lrezek/Neo4j-PHP-OGM",
+    "license": "MIT",
+    "authors": [
+        {"name": "Lukas Rezek", "email": "lukas@miratronix.com", "homepage": "http://www.miratronix.com"}
+    ],
+    "require": {
+        "php": ">=5.3.2",
+        "doctrine/common": ">=2.2.0,<2.4.0-dev",
+        "everyman/neo4jphp": "dev-master"
+    },
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-0": {
+            "LRezek": "lib/"
+        }
+    }
+}
