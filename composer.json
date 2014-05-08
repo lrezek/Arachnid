@@ -1,9 +1,9 @@
 {
-    "name": "lrezek/neo4PHP",
+    "name": "lrezek/neo4php",
     "type": "library",
     "description": "PHP Object Graph Mapper for Neo4J",
     "keywords": ["neo4j","graph","database","entity-mapper","doctrine"],
-    "homepage": "https://github.com/lrezek/neo4PHP",
+    "homepage": "https://github.com/lrezek/Neo4PHP",
     "license": "MIT",
     "authors": [
         {"name": "Lukas Rezek", "email": "lukas@miratronix.com", "homepage": "http://www.miratronix.com"}
