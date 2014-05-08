@@ -16,7 +16,7 @@
     "minimum-stability": "dev",
     "autoload": {
         "psr-0": {
-            "LRezek": "lib/"
+            "LRezek\\Neo4j": "lib/"
         }
     }
 }
