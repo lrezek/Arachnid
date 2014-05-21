@@ -15,7 +15,7 @@
     bootstrap                   = "bootstrap.php">
 
     <testsuites>
-        <testsuite name="Gameo Test Suite">
+        <testsuite name="Neo4PHP Test Suite">
             <file>lib/LRezek/Neo4j/Tests/QueryTest.php</file>
             <file>lib/LRezek/Neo4j/Tests/EntityManagerTest.php</file>
             <file>lib/LRezek/Neo4j/Tests/MetaTest.php</file>

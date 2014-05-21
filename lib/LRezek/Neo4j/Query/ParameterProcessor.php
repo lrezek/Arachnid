@@ -4,14 +4,13 @@ namespace LRezek\Neo4j\Query;
 
 class ParameterProcessor
 {
-    const GREMLIN = 'gremlin';
     const CYPHER = 'cypher';
 
     private $mode;
     private $query;
     private $parameters = array();
 
-    function __construct($mode = 'gremlin')
+    function __construct($mode = 'cypher')
     {
         $this->mode = $mode;
     }

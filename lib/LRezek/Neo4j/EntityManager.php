@@ -14,7 +14,6 @@ use Everyman\Neo4j\Client,
     Everyman\Neo4j\Node,
     Everyman\Neo4j\Relationship,
     Everyman\Neo4j\Index\NodeIndex,
-    Everyman\Neo4j\Gremlin\Query as InternalGremlinQuery,
     Everyman\Neo4j\Cypher\Query as InternalCypherQuery;
 use Everyman\Neo4j\Index\RelationshipIndex;
 use LRezek\Neo4j\Meta\Relation;
@@ -82,6 +81,7 @@ class EntityManager
     /** @var callable Date generation function to use. */
     private $dateGenerator;
 
+    /** @var array Array of event handlers to call during various tasks. */
     private $eventHandlers = array();
 
     /**
@@ -888,6 +888,12 @@ class EntityManager
         $this->eventHandlers[$eventName][] = $callback;
     }
 
+    /**
+     * Triggers an event held in the everntHandlers array.
+     *
+     * @param string $eventName Name of the event.
+     * @param array $data Parameters to pass to the event handler.
+     */
     private function triggerEvent($eventName, $data)
     {
         if (isset($this->eventHandlers[$eventName]))
@@ -900,57 +906,6 @@ class EntityManager
                 $clone = $args;
                 call_user_func_array($callback, $clone);
             }
-        }
-    }
-
-    /**
-     * Provides a Gremlin query builder.
-     * 
-     * @param string $query Initial query fragment.
-     * @return Query\Gremlin
-     */
-    function createGremlinQuery($query = null)
-    {
-        $q = new Query\Gremlin($this);
-
-        if ($query) {
-            $q->add($query);
-        }
-
-        return $q;
-    }
-
-    /**
-     * Raw gremlin query execution. Used by Query\Gremlin.
-     *
-     * @param string $string The query string.
-     * @param array $parameters The arguments to bind with the query.
-     * @return \Everyman\Neo4j\Query\ResultSet
-     */
-    function gremlinQuery($string, $parameters)
-    {
-        try {
-
-            $start = microtime(true);
-
-            $query = new InternalGremlinQuery($this->client, $string, $parameters);
-            $rs = $query->getResultSet();
-
-            $time = microtime(true) - $start;
-            $this->triggerEvent(self::QUERY_RUN, $query, $parameters, $time);
-
-            if (count($rs) === 1 && is_string($rs[0][0]) && strpos($rs[0][0], 'Exception') !== false)
-            {
-                throw new Exception("An error was detected: {$rs[0][0]}", 0, null, $query);
-            }
-
-            return $rs;
-
-        }
-
-        catch (\Everyman\Neo4j\Exception $e)
-        {
-            throw new Exception("An error was detected: {$e->getMessage()}", 0, null, $query);
         }
     }
 

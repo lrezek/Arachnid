@@ -11,12 +11,25 @@ namespace LRezek\Neo4j\Meta;
 use Doctrine\Common\Annotations\Reader as AnnotationReader;
 use LRezek\Neo4j\Exception;
 
+/**
+ * Defines meta for a Relation.
+ *
+ * This is a meta class that defines the meta for a Relation. It is a meta object that extends \LRezek\Neo4j\Meta\GraphElement,
+ * meaning it only contains property information for a relation, retrieved through an annotation reader. It does NOT contain
+ * actual property values, just a list of indexed/non-indexed properties and the primary key for a class that has the
+ * correct relation annotations. It also contains the repository class to use when querying for objects of this type.
+ *
+ * @package Neo4j\Meta
+ */
 class Relation extends GraphElement
 {
+    /** @var Property Stores the property to use as the start of the relation.*/
     private $start;
+
+    /** @var Property Stores the property to use as the end of the relation.*/
     private $end;
 
-    //Repository class
+    /** @var string Stores the repository class to be used when querying for the relation.*/
     private $repositoryClass = 'LRezek\\Neo4j\\Repository';
 
     /**
@@ -42,10 +55,13 @@ class Relation extends GraphElement
         return $this->repositoryClass;
     }
 
-    /*
-     * Loops through properties looking for a end node.
+    /**
+     * Loops through properties looking for a End and keeps track of it.
+     *
+     * @param $reader AnnotationReader Annotation reader to use.
+     * @param $properties Array of properties in the relation.
      */
-	function loadEnd($reader, $properties)
+    function loadEnd($reader, $properties)
 	{
         foreach ($properties as $property) {
             $prop = new Property($reader, $property);
@@ -56,8 +72,11 @@ class Relation extends GraphElement
 		}
 	}
 
-    /*
-     * Looks through properties looking for a start node.
+    /**
+     * Loops through properties looking for a Start and keeps track of it.
+     *
+     * @param $reader AnnotationReader Annotation reader to use.
+     * @param $properties Array of properties in the relation.
      */
     function loadStart($reader, $properties)
     {
@@ -70,11 +89,22 @@ class Relation extends GraphElement
         }
     }
 
+    /**
+     * Gets the start property of the relation.
+     *
+     * @return Property The start property.
+     */
     function getStart()
     {
         return $this->start;
     }
 
+    /**
+     * Sets the start property of the relation.
+     *
+     * @param Property $property The property to set the start to.
+     * @throws \LRezek\Neo4j\Exception Thrown if the relation already has a start.
+     */
     function setStart(Property $property)
     {
         if ($this->start) {
@@ -84,11 +114,22 @@ class Relation extends GraphElement
         $this->start = $property;
     }
 
+    /**
+     * Gets the end property of the relation.
+     *
+     * @return Property The end property.
+     */
     function getEnd()
     {
         return $this->end;
     }
 
+    /**
+     * Sets the end property of the relation.
+     *
+     * @param Property $property The property to set the end to.
+     * @throws \LRezek\Neo4j\Exception Thrown if the relation already has a end.
+     */
     function setEnd(Property $property)
     {
         if ($this->end) {
@@ -98,6 +139,11 @@ class Relation extends GraphElement
         $this->end = $property;
     }
 
+    /**
+     * Validates the relation object, making sure it has a start and an end property.
+     *
+     * @throws \LRezek\Neo4j\Exception Thrown if the object does not have a start/end property.
+     */
     function validate()
     {
         //If both start and end contain something

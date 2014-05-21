@@ -24,7 +24,10 @@ use LRezek\Neo4j\Meta\Relation;
  */
 class Factory
 {
+    /** @var string The directory to use for writing proxy classes.*/
     private $proxyDir;
+
+    /** @var bool Debug flag. */
     private $debug;
 
     /**
@@ -119,6 +122,18 @@ class Factory
 
     }
 
+    /**
+     * Creates a proxy class for a graph element.
+     *
+     * This method will create a proxy class for an entity that extends the required class and implements
+     * LRezek\Neo4j\Proxy\Entity. This class will be generated and stored in the directory specified by the $proxyDir
+     * property of this class. This is done so that the object returned by a query seemingly matches the object type
+     * being queried for, while retaining its ID and other required information.
+     *
+     * @param \LRezek\Neo4j\Meta\GraphElement $meta The meta for the entity object being proxied.
+     * @return mixed An instance of the proxy class.
+     * @throws \LRezek\Neo4j\Exception If something goes wrong in file writing.
+     */
     private function createProxy(\LRezek\Neo4j\Meta\GraphElement $meta)
     {
         //Get the proxy class name, as well as the regular class name

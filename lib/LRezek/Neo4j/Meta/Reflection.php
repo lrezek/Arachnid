@@ -9,14 +9,31 @@
  */
 namespace LRezek\Neo4j\Meta;
 
+/**
+ * Deals with converting english property names to real ones through singularization.
+ *
+ * @package LRezek\Neo4j\Meta
+ */
 class Reflection
 {
+    /**
+     * Gets the property relating to a method name for searching.
+     *
+     * @param string $methodName Name of the method called.
+     * @return string Property name.
+     */
     public static function getProperty($methodName)
     {
         $property = substr($methodName, 3);
         return self::singularizeProperty($property);
     }
 
+    /**
+     * Singularizes a property name, by making it lowercase and stripping off "ies" or "s"
+     *
+     * @param string $property Property name to sigularize.
+     * @return string Singularized property name.
+     */
     public static function singularizeProperty($property)
     {
         $property = lcfirst($property);

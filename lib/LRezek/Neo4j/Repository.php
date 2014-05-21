@@ -115,18 +115,6 @@ class Repository
         return $collection;
     }
 
-
-    /**
-     * Creates a Gremlin query.
-     *
-     * @param null $string The query.
-     * @return Query\Gremlin
-     */
-    protected function createGremlinQuery($string = null)
-    {
-        return $this->entityManager->createGremlinQuery($string);
-    }
-
     /**
      * Creates a Cypher query.
      *
@@ -284,9 +272,6 @@ class Repository
 
         return $collection;
     }
-
-    //TODO: Add a all relations between two nodes. (Ex: dave -> luke -> nicole getRelations(dave, nicole) returns both rels, by depth).
-    //TODO: Perhaps add all nodes between two nodes? Counterpart to above.
 
     /**
      * Calls the Lucene Query Processor to build the query.

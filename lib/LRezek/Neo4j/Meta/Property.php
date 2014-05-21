@@ -30,10 +30,17 @@ class Property
     const START = 'LRezek\\Neo4j\\Annotation\\Start';
     const END = 'LRezek\\Neo4j\\Annotation\\End';
 
-    private $reader;                //Annotation reader
-    private $property;              //Actual Property Object
-    private $name;                  //Name of the property
-    private $format = 'scalar';     //Default format of property
+    /** @var \Doctrine\Common\Annotations\AnnotationReader The annotation reader to use.*/
+    private $reader;
+
+    /** @var \LRezek\Neo4j\Annotation\Property Property Annotation object.*/
+    private $property;
+
+    /** @var string The name of the property.*/
+    private $name;
+
+    /** @var string The format of the property. */
+    private $format = 'scalar';
 
     /**
      * Constructor. Saves the annotation reader and the actual property.
