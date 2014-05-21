@@ -9,7 +9,7 @@ Released under the MIT Licence.
 
 ## Installation through Composer
 
-To install the library through composer, you simply need to add the following to `composer.json`:
+To install the library through composer, you simply need to add the following to `composer.json` and run `composer update`:
 
 ```JavaScript
 {
