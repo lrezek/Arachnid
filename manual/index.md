@@ -9,4 +9,4 @@ Table of Contents
 6. [Basic Queries]
 7. [Cypher Queries]
 8. [Tests]
-9. [PHPdoc Ducumentation]
+9. [PHPdoc Documentation]
