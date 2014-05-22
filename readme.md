@@ -3,7 +3,7 @@
 Neo4PHP is a PHP object graph mapper for Neo4J. It is built on top of [Josh Adell's Neo4J PHP Rest interface](https://github.com/jadell/neo4jphp).
 
 This library is heavily based on the excellent work done by Louis-Philippe Huberdeau in his [PHP OGM](https://github.com/lphuberdeau/Neo4j-PHP-OGM).
-The main difference is that this OGM allows you to define relationship objects as well as nodes.
+The main difference is that this OGM allows you to define relationship objects as well as node objects, allowing you to attach properties to relationships very easily.
 
 Released under the MIT Licence.
 
