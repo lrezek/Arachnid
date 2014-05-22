@@ -1,7 +1,7 @@
 Table of Contents
 =================
 
-1. [OGM Theory]
+1. [OGM Theory](ogm_theory.md)
 2. [The Entity Manager]
 3. [Node Objects]
 4. [Relationship Objects]
