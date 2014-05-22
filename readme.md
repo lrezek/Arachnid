@@ -23,4 +23,4 @@ Once installed, you can use the Entity manager class (`LRezek/Neo4J/EntityManage
 
 ## Documentation
 
-For full documentation, as well as usage examples, please refer to the [manual](manual/index.md)
+For full documentation, as well as usage examples, please refer to the [manual](manual/index.md).
