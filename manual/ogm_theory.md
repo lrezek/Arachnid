@@ -17,10 +17,10 @@ class user
 ```
 
 Normally, to get this class into a graph database, you would have to pass it to a method that communicates with the
-database and creates a node (or vertex) with the specified parameters. Now, let's say you wanted to change the users
-password. In order to accomplish this, you would have to query the database for the user, then do another query to change
-the users password. As you can imagine, writing methods like that take up a whole lot of time, and they make your code
-more difficult to read.
+database and creates a node (or vertex) with the specified parameters. Now, let's say you wanted to change the user's
+password. In order to accomplish this, you would have to query the database for the user, then do another query to make
+the change. As you can imagine, writing methods like that take up a whole lot of time, and they make your code more
+difficult to read.
 
 This is where an OGM comes into play. Because an OGM maps your objects to graph objects, you no longer have to worry
 about writing those tedious update queries. In the case of this OGM, you can redefine the user class as follows:
