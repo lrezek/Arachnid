@@ -45,7 +45,7 @@ class user
     /**
      * @OGM\Property
      */
-    protected $lastName;
+    protected $password;
 }
 ```
 
