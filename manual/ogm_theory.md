@@ -50,9 +50,9 @@ class user
 ```
 
 This is called an Entity, or an object that is mapped to a graph element. This class can then be used as a regular user
-class defined above. However, if you pass that user object to the entity manager, it keeps track of it for you and is
-capable of updating the object, querying for it, writing it to the database, or removing it from the database. This
-prevents you from having to get your hands dirty with query code and allows you to focus on the business logic of the
-application. You'll notice that the database parameters of the object, such as its primary key, properties, and indexes
-are defined through annotations in the actual class file. This means that as you define your objects you decide on their
-database attributes, and you never have to worry about them again.
+class defined above. However, if you pass that user object to the Entity Manager (discussed later), it keeps track of it
+for you and is capable of updating the object, querying for it, writing it to the database, or removing it from the
+database. This prevents you from having to get your hands dirty with query code and allows you to focus on the business
+logic of the application. You'll notice that the database parameters of the object, such as its primary key, properties,
+and indexes are defined through annotations in the actual class file. This means that as you define your objects you
+decide on their database attributes, and you never have to worry about them again.
