@@ -38,6 +38,12 @@ class Reflection
     {
         $property = lcfirst($property);
 
+        //Remove an underscore, so you can do get_date()
+        if(substr($property,0,1) == '_')
+        {
+            $property = substr($property, 1);
+        }
+
 //        //Deal with famil-'ies', make it 'family'
 //        if ('ies' == substr($property, -3)) {
 //            $property = substr($property, 0, -3) . 'y';
