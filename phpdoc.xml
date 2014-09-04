@@ -15,7 +15,7 @@
         <template name="responsive" />
     </transformations>
     <files>
-        <directory>lib/LRezek/Neo4j</directory>
-        <ignore>lib/LRezek/Neo4j/Tests/*</ignore>
+        <directory>lib/LRezek/Neo4PHP</directory>
+        <ignore>lib/LRezek/Neo4PHP/Tests/*</ignore>
     </files>
 </phpdoc>

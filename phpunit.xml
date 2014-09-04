@@ -16,10 +16,10 @@
 
     <testsuites>
         <testsuite name="Neo4PHP Test Suite">
-            <file>lib/LRezek/Neo4j/Tests/QueryTest.php</file>
-            <file>lib/LRezek/Neo4j/Tests/EntityManagerTest.php</file>
-            <file>lib/LRezek/Neo4j/Tests/MetaTest.php</file>
-            <file>lib/LRezek/Neo4j/Tests/RepositoryTest.php</file>
+            <file>lib/LRezek/Neo4PHP/Tests/QueryTest.php</file>
+            <file>lib/LRezek/Neo4PHP/Tests/EntityManagerTest.php</file>
+            <file>lib/LRezek/Neo4PHP/Tests/MetaTest.php</file>
+            <file>lib/LRezek/Neo4PHP/Tests/RepositoryTest.php</file>
         </testsuite>
     </testsuites>
 
@@ -33,9 +33,9 @@
     <filter>
 
         <blacklist>
-            <directory>./lib/LRezek/Neo4j/Tests</directory>
-            <directory>./lib/LRezek/Neo4j/Tests/Entity</directory>
-            <directory>./lib/LRezek/Neo4j/Tests/Repo</directory>
+            <directory>./lib/LRezek/Neo4PHP/Tests</directory>
+            <directory>./lib/LRezek/Neo4PHP/Tests/Entity</directory>
+            <directory>./lib/LRezek/Neo4PHP/Tests/Repo</directory>
             <directory>./vendor</directory>
             <file>./bootstrap.php</file>
             <file>./composer.json</file>
@@ -45,14 +45,14 @@
         </blacklist>
 
         <whitelist>
-            <directory>lib/LRezek/Neo4j/Annotation</directory>
-            <directory>lib/LRezek/Neo4j/Meta</directory>
-            <directory>lib/LRezek/Neo4j/Proxy</directory>
-            <directory>lib/LRezek/Neo4j/Query</directory>
-            <file>lib/LRezek/Neo4j/Configuration.php</file>
-            <file>lib/LRezek/Neo4j/EntityManager.php</file>
-            <file>lib/LRezek/Neo4j/Exception.php</file>
-            <file>lib/LRezek/Neo4j/Repository.php</file>
+            <directory>lib/LRezek/Neo4PHP/Annotation</directory>
+            <directory>lib/LRezek/Neo4PHP/Meta</directory>
+            <directory>lib/LRezek/Neo4PHP/Proxy</directory>
+            <directory>lib/LRezek/Neo4PHP/Query</directory>
+            <file>lib/LRezek/Neo4PHP/Configuration.php</file>
+            <file>lib/LRezek/Neo4PHP/EntityManager.php</file>
+            <file>lib/LRezek/Neo4PHP/Exception.php</file>
+            <file>lib/LRezek/Neo4PHP/Repository.php</file>
         </whitelist>
 
     </filter>

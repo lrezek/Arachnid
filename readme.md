@@ -19,7 +19,7 @@ To install the library through composer, you simply need to add the following to
     }
 }
 ```
-Once installed, you can use the Entity manager class (`LRezek/Neo4J/EntityManager`) as required.
+Once installed, you can use the Entity manager class (`LRezek/Neo4PHP/EntityManager`) as required.
 
 ## Documentation
 
