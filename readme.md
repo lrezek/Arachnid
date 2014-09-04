@@ -23,4 +23,4 @@ Once installed, you can use the Entity manager class (`LRezek/Neo4J/EntityManage
 
 ## Documentation
 
-For full documentation, as well as usage examples, please refer to the [wiki](https://github.com/lrezek/Neo4PHP/wiki).
+For full documentation, as well as usage examples, please refer to the [wiki](https://github.com/lrezek/Neo4PHP/wiki/Table-of-Contents).
