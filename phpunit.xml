@@ -32,18 +32,6 @@
 
     <filter>
 
-        <blacklist>
-            <directory>./src/LRezek/Neo4PHP/Tests</directory>
-            <directory>./src/LRezek/Neo4PHP/Tests/Entity</directory>
-            <directory>./src/LRezek/Neo4PHP/Tests/Repo</directory>
-            <directory>./vendor</directory>
-            <file>./bootstrap.php</file>
-            <file>./composer.json</file>
-            <file>./composer.lock</file>
-            <file>./phpdoc.xml</file>
-            <file>./README.markdown</file>
-        </blacklist>
-
         <whitelist>
             <directory>src/LRezek/Neo4PHP/Annotation</directory>
             <directory>src/LRezek/Neo4PHP/Meta</directory>
