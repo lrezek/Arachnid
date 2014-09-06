@@ -19,7 +19,7 @@ use Everyman\Neo4j\Transport;
  * Contains all entity manager settings, including the transport type, host ip, port, username/password, and proxy
  * directory.
  *
- * @package Neo4j
+ * @package Neo4PHP
  */
 class Configuration
 {

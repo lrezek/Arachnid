@@ -15,7 +15,7 @@ use Everyman\Neo4j\Query;
 /**
  * Extends base PHP exception to add the ability to store query information.
  *
- * @package Neo4j
+ * @package Neo4PHP
  */
 class Exception extends \Exception
 {

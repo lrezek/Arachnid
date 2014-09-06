@@ -13,7 +13,8 @@ namespace LRezek\Neo4PHP\Proxy;
 /**
  * Base proxy entity interface.
  *
- * @package Neo4j\Proxy
+ * @package Neo4PHP
+ * @subpackage Proxy
  */
 interface Entity
 {

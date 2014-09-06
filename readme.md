@@ -21,6 +21,10 @@ To install the library through composer, you simply need to add the following to
 ```
 Once installed, you can use the Entity manager class (`LRezek/Neo4PHP/EntityManager`) as required.
 
-## Documentation
+## Documentation and Testing
+
+You can generate PHP Documentor docs by running `php /path/to/phpdocumentor/phpdocumentor.phar` while in the root folder of this repository.
+
+You can run unit tests on the library by running `php /path/to/phpunit/phpunit.phar` while in the root folder of this repository.
 
 For full documentation, as well as usage examples, please refer to the [wiki](https://github.com/lrezek/Neo4PHP/wiki/Table-of-Contents).

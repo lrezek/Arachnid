@@ -18,7 +18,8 @@ namespace LRezek\Neo4PHP\Meta;
  * actual property values, just a list of indexed/non-indexed properties and the primary key for a class that has the
  * correct node annotations. It also contains the repository class to use when querying for objects of this type.
  *
- * @package Neo4j\Meta
+ * @package Neo4PHP
+ * @subpackage Meta
  */
 class Node extends GraphElement
 {

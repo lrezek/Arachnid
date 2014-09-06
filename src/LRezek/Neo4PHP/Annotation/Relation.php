@@ -14,7 +14,8 @@ namespace LRezek\Neo4PHP\Annotation;
 /**
  * Annotation class for the <code>@OGM\Relation</code> annotation.
  *
- * @package Neo4j\Annotation
+ * @package Neo4PHP
+ * @subpackage Annotation
  *
  * @Annotation
  * @Target("CLASS")

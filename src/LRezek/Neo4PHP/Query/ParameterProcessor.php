@@ -13,7 +13,8 @@ namespace LRezek\Neo4PHP\Query;
 /**
  * Class that processes query parameters.
  *
- * @package Neo4j\Query
+ * @package Neo4PHP
+ * @subpackage Query
  */
 class ParameterProcessor
 {

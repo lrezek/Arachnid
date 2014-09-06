@@ -6,8 +6,6 @@ use LRezek\Neo4PHP\EntityManager;
 
 class EntityManagerTest extends DatabaseTestCase
 {
-    //TODO: Query tests
-
     function __construct()
     {
         //Generate a ID, so nodes can easily be found and deleted after tests

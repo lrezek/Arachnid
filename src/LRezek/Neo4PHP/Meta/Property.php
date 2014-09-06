@@ -17,7 +17,8 @@ namespace LRezek\Neo4PHP\Meta;
  * property types (AUTO, PROPERTY, INDEX, START, END), the format of the property and the name of it. Properties are
  * constructed with an AnnotationReader, so that they can read what sort of property they should act as.
  *
- * @package Neo4j\Meta
+ * @package Neo4PHP
+ * @subpackage Meta
  */
 class Property
 {

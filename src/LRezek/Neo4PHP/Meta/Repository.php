@@ -18,7 +18,8 @@ use LRezek\Neo4PHP\Exception;
  *
  * This class is responsible for parsing annotations and getting meta data based on them.
  *
- * @package LRezek\Neo4PHP\Meta
+ * @package Neo4PHP
+ * @subpackage Meta
  */
 class Repository
 {

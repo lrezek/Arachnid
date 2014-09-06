@@ -12,7 +12,8 @@ namespace LRezek\Neo4PHP\Meta;
 /**
  * Deals with converting english property names to real ones through singularization.
  *
- * @package LRezek\Neo4PHP\Meta
+ * @package Neo4PHP
+ * @subpackage Meta
  */
 class Reflection
 {
@@ -36,13 +37,13 @@ class Reflection
      */
     public static function singularizeProperty($property)
     {
-        $property = lcfirst($property);
-
         //Remove an underscore, so you can do get_date()
         if(substr($property,0,1) == '_')
         {
             $property = substr($property, 1);
         }
+
+        $property = lcfirst($property);
 
 //        //Deal with famil-'ies', make it 'family'
 //        if ('ies' == substr($property, -3)) {

@@ -19,7 +19,8 @@ use LRezek\Neo4PHP\Exception;
  * through an annotation reader. It does NOT contain actual property values, just a list of indexed/non-indexed
  * properties and the primary key for a class that has the correct annotations.
  *
- * @package Neo4j\Meta
+ * @package Neo4PHP
+ * @subpackage Meta
  */
 abstract class GraphElement
 {

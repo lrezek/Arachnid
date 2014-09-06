@@ -7,9 +7,6 @@ use LRezek\Neo4PHP\Tests\Entity\User;
 
 class RepositoryTest extends DatabaseTestCase
 {
-    //TODO: Query tests
-    //TODO: Increase code coverage! Exception tests!
-
     function __construct()
     {
         //Generate a ID, so nodes can easily be found and deleted after tests
@@ -108,6 +105,19 @@ class RepositoryTest extends DatabaseTestCase
         $result = $query->getResultSet();
     }
 
+    function testRepositoryCreation()
+    {
+        $em = $this->getEntityManager();
+
+        //Standard camelCase
+        $repo1 = $em->getRepository('LRezek\\Neo4PHP\\Tests\\Entity\\User');
+
+        //Test alternate notation
+        $repo2 = $em->get_repository('LRezek\\Neo4PHP\\Tests\\Entity\\User');
+
+        $this->assertEquals($repo1, $repo2);
+    }
+
     //*****************************************************
     //***** FIND ONE TESTS ********************************
     //*****************************************************
@@ -118,9 +128,27 @@ class RepositoryTest extends DatabaseTestCase
         //Find a node
         $em = $this->getEntityManager();
         $repo = $em->getRepository('LRezek\\Neo4PHP\\Tests\\Entity\\User');
+
+        //Do a standard findOneBy
         $user = $repo->findOneByFirstName('Brad');
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
+
+        //Try alternate notations
+        $alt = array();
+        $alt[] = $repo->findOneByfirstName('Brad');
+        $alt[] = $repo->findOneBy_FirstName('Brad');
+        $alt[] = $repo->findOneBy_firstName('Brad');
+        $alt[] = $repo->find_one_by_firstName('Brad');
+        $alt[] = $repo->find_one_by_FirstName('Brad');
+        $alt[] = $repo->find_one_byFirstName('Brad');
+        $alt[] = $repo->find_one_byfirstName('Brad');
+
+        //Make sure all these results are the same
+        foreach($alt as $a)
+        {
+            $this->assertEquals($user, $a);
+        }
 
         //Make sure the node is the right one
         $this->assertEquals("Brad", $user->getFirstName());
@@ -133,9 +161,27 @@ class RepositoryTest extends DatabaseTestCase
         //Query for relation
         $em = $this->getEntityManager();
         $repo = $em->getRepository('LRezek\\Neo4PHP\\Tests\\Entity\\FriendsWith');
+
+        //Grab the relation
         $rel = $repo->findOneBySince('1990');
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
+
+        //Try it with all the different notations
+        $alt = array();
+        $alt[] = $repo->findOneBysince('1990');
+        $alt[] = $repo->findOneBy_Since('1990');
+        $alt[] = $repo->findOneBy_since('1990');
+        $alt[] = $repo->find_one_by_since('1990');
+        $alt[] = $repo->find_one_by_Since('1990');
+        $alt[] = $repo->find_one_bysince('1990');
+        $alt[] = $repo->find_one_bySince('1990');
+
+        //Make sure all these results are the same
+        foreach($alt as $a)
+        {
+            $this->assertEquals($rel, $a);
+        }
 
         $start = $rel->getFrom();
         $end = $rel->getTo();
@@ -156,9 +202,14 @@ class RepositoryTest extends DatabaseTestCase
 
         //Find said node
         $repo = $this->getEntityManager()->getRepository('LRezek\\Neo4PHP\\Tests\\Entity\\User');
+
         $user = $repo->findOneBy(array("firstName" => 'Brad'));
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
+
+        //Test alternate notation
+        $user2 = $repo->find_one_by(array("firstName" => 'Brad'));
+        $this->assertEquals($user, $user2);
 
         //Validate user
         $this->assertEquals("Brad", $user->getFirstName());
@@ -175,6 +226,10 @@ class RepositoryTest extends DatabaseTestCase
         $rel = $repo->findOneBy(array('since' => '1991'));
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
+
+        //Test alternate notation
+        $rel2= $repo->find_one_by(array('since' => '1991'));
+        $this->assertEquals($rel, $rel2);
 
         //Validate relationship
         $start = $rel->getFrom();
@@ -459,9 +514,26 @@ class RepositoryTest extends DatabaseTestCase
         $t = microtime(true);
 
         //Find the 3 nodes
-        $nodes = $em->getRepository('LRezek\\Neo4PHP\\Tests\\Entity\\User')->findByFirstName("Bradley")->toArray();
+        $repo = $em->getRepository('LRezek\\Neo4PHP\\Tests\\Entity\\User');
+        $nodes = $repo->findByFirstName("Bradley")->toArray();
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
+
+        //Test alternate notations
+        $alt = array();
+        $alt[] = $repo->findByfirstName('Bradley')->toArray();
+        $alt[] = $repo->findBy_FirstName('Bradley')->toArray();
+        $alt[] = $repo->findBy_firstName('Bradley')->toArray();
+        $alt[] = $repo->find_by_firstName('Bradley')->toArray();
+        $alt[] = $repo->find_by_FirstName('Bradley')->toArray();
+        $alt[] = $repo->find_byFirstName('Bradley')->toArray();
+        $alt[] = $repo->find_byfirstName('Bradley')->toArray();
+
+        //Make sure all these results are the same
+        foreach($alt as $a)
+        {
+            $this->assertEquals($nodes, $a);
+        }
 
         //Make sure there are 3 nodes
         $this->assertEquals(count($nodes), 3);
@@ -503,8 +575,25 @@ class RepositoryTest extends DatabaseTestCase
         $em->flush();
 
         $t = microtime(true);
-        $relations = $em->getRepository('LRezek\\Neo4PHP\\Tests\\Entity\\FriendsWith')->findBySince("2050")->toArray();
+        $repo = $em->getRepository('LRezek\\Neo4PHP\\Tests\\Entity\\FriendsWith');
+        $relations = $repo->findBySince("2050")->toArray();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
+
+        //Test alternate notations
+        $alt = array();
+        $alt[] = $repo->findBysince('2050')->toArray();
+        $alt[] = $repo->findBy_Since('2050')->toArray();
+        $alt[] = $repo->findBy_since('2050')->toArray();
+        $alt[] = $repo->find_by_since('2050')->toArray();
+        $alt[] = $repo->find_by_Since('2050')->toArray();
+        $alt[] = $repo->find_bySince('2050')->toArray();
+        $alt[] = $repo->find_bysince('2050')->toArray();
+
+        //Make sure all these results are the same
+        foreach($alt as $a)
+        {
+            $this->assertEquals($relations, $a);
+        }
 
         //Make sure there are 3 nodes
         $this->assertEquals(count($relations), 3);
@@ -536,9 +625,14 @@ class RepositoryTest extends DatabaseTestCase
         $t = microtime(true);
 
         //Find the 3 nodes
-        $nodes = $em->getRepository('LRezek\\Neo4PHP\\Tests\\Entity\\User')->findBy(array('firstName' => 'Uma', 'lastName' => 'Therman'))->toArray();
+        $repo = $em->getRepository('LRezek\\Neo4PHP\\Tests\\Entity\\User');
+        $nodes = $repo->findBy(array('firstName' => 'Uma', 'lastName' => 'Therman'))->toArray();
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
+
+        //Test alternate notation
+        $nodes2 = $repo->find_by(array('firstName' => 'Uma', 'lastName' => 'Therman'))->toArray();
+        $this->assertEquals($nodes, $nodes2);
 
         //Make sure there are 3 nodes
         $this->assertEquals(count($nodes), 3);
@@ -582,11 +676,16 @@ class RepositoryTest extends DatabaseTestCase
 
         $t = microtime(true);
 
-        $relations = $em->getRepository('LRezek\\Neo4PHP\\Tests\\Entity\\FriendsWith')->findBy(array('since' => '2051'))->toArray();
+        $repo = $em->getRepository('LRezek\\Neo4PHP\\Tests\\Entity\\FriendsWith');
+        $relations = $repo->findBy(array('since' => '2051'))->toArray();
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
-        //Make sure there are 3 nodes
+        //Test alternate notation
+        $rel2 = $repo->find_by(array('since' => '2051'))->toArray();
+        $this->assertEquals($relations, $rel2);
+
+        //Make sure there are 3 relations
         $this->assertEquals(count($relations), 3);
 
         //Make sure they contain the proper values

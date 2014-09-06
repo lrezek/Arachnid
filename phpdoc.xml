@@ -12,10 +12,10 @@
         <target>docs</target>
     </transformer>
     <transformations>
-        <template name="responsive" />
+        <template name="responsive-twig" />
     </transformations>
     <files>
-        <directory>lib/LRezek/Neo4PHP</directory>
-        <ignore>lib/LRezek/Neo4PHP/Tests/*</ignore>
+        <directory>src/LRezek/Neo4PHP</directory>
+        <ignore>src/LRezek/Neo4PHP/Tests/*</ignore>
     </files>
 </phpdoc>

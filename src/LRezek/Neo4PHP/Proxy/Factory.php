@@ -18,7 +18,8 @@ use LRezek\Neo4PHP\Exception;
  * This class is responsible for making proxy objects, which are used to convert an Everyman node/relation back into an
  * entity.
  *
- * @package Neo4j\Proxy
+ * @package Neo4PHP
+ * @subpackage Proxy
  */
 class Factory
 {

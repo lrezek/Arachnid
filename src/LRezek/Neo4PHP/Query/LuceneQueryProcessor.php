@@ -13,7 +13,8 @@ namespace LRezek\Neo4PHP\Query;
 /**
  * Class that processes requests through the Lucene Engine
  *
- * @package Neo4j\Query
+ * @package Neo4PHP
+ * @subpackage Query
  */
 class LuceneQueryProcessor
 {

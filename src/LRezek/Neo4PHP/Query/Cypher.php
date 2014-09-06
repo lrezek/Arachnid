@@ -19,7 +19,8 @@ use Lrezek\Neo4PHP\EntityManager;
  * This class handles the construction and execution of cypher queries. Most of the methods in this class return the
  * class itself, allowing for cascading method calls.
  *
- * @package Neo4j\Query
+ * @package Neo4PHP
+ * @subpackage Query
  */
 class Cypher
 {

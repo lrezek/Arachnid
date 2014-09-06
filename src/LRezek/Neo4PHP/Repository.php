@@ -21,17 +21,17 @@ use LRezek\Neo4PHP\Query\LuceneQueryProcessor;
  * All queries are done through repository classes. These are stored in the entity manager, and can be accessed with
  * $em->getRepository($className)
  *
- * @package Neo4j
+ * @package Neo4PHP
  */
 class Repository
 {
-    /** @var \LRezek\Neo4PHP\Meta\GraphElement The meta information for the graph element. */
+    /** @var Meta\GraphElement The meta information for the graph element. */
     private $meta;
 
     /** @var \Everyman\Neo4j\Index\NodeIndex|\Everyman\Neo4j\Index\RelationshipIndex The index info for the class. */
     private $index;
 
-    /** @var \LRezek\Neo4PHP\EntityManager The entity manager. */
+    /** @var EntityManager The entity manager. */
     private $entityManager;
 
     /** @var string The name of the class. */
@@ -125,7 +125,6 @@ class Repository
         return $this->entityManager->createCypherQuery();
     }
 
-
     /**
      * Finds one node or relation by search criteria.
      *
@@ -187,7 +186,7 @@ class Repository
                 throw new Exception("Please supply at least one criteria to findOneBy()");
             }
 
-            //Intersect the 3 potential result sets (if they are there)
+            //Intersect the 3 potential result sets (relations <- start nodes, relations -> end nodes, relations from properties query )
             $results = count($result_sets) > 1 ? call_user_func_array('array_intersect', $result_sets) : $result_sets[0];
 
             //No results
@@ -196,6 +195,19 @@ class Repository
         }
 
         return null;
+    }
+
+    /**
+     * Alternate convention to findOneBy (Finds one node or relation by search criteria.)
+     *
+     * @param array $criteria The search criteria.
+     * @throws Exception If no criterion supplied.
+     * @return mixed|null The node/Relation or Null if not found.
+     * @api
+     */
+    public function find_one_by(array $criteria)
+    {
+        return $this->findOneBy($criteria);
     }
 
     /**
@@ -256,6 +268,7 @@ class Repository
                 $result_sets[] = $this->getIndex()->query($query);
             }
 
+            //No results at all (means no start node/end node or properties) (this shouldn't be called without criteria... ever)
             if(count($result_sets) == 0)
             {
                 throw new Exception("Please supply at least one criteria to findBy()");
@@ -271,6 +284,19 @@ class Repository
         }
 
         return $collection;
+    }
+
+    /**
+     * Alternate convention to findBy (Finds all nodes an relations by search criteria.)
+     *
+     * @param array $criteria The search criteria.
+     * @throws Exception If no criterion supplied.
+     * @return ArrayCollection Collection of nodes or relations.
+     * @api
+     */
+    public function find_by(array $criteria)
+    {
+        return $this->findBy($criteria);
     }
 
     /**
@@ -306,14 +332,24 @@ class Repository
     function __call($name, $arguments)
     {
         //If the call starts with 'findOneBy'
-        if (strpos($name, 'findOneBy') === 0)
+        if ((strpos($name, 'findOneBy') === 0) || (strpos($name, 'find_one_by') === 0))
         {
+
+            //Get the appropriate sub string length, based on the notation
+            if(strpos($name, 'findOneBy') === 0)
+            {
+                $len = strlen('findOneBy');
+            }
+            else
+            {
+                $len = strlen('find_one_by');
+            }
 
             //If this repository is for a node
             if($this->meta instanceof Node)
             {
                 //Get the property
-                $property = $this->getSearchableProperty(substr($name, 9));
+                $property = $this->getSearchableProperty(substr($name, $len));
 
                 //Search index for node
                 if ($node = $this->getIndex()->findOne($property, $arguments[0]))
@@ -328,7 +364,7 @@ class Repository
             else
             {
                 //Singularize the property
-                $prop = Meta\Reflection::singularizeProperty(substr($name, 9));
+                $prop = Meta\Reflection::singularizeProperty(substr($name, $len));
 
                 //If it's the start or end
                 if($prop == $this->meta->getStart()->getName() || $prop == $this->meta->getEnd()->getName())
@@ -344,7 +380,7 @@ class Repository
                else
                {
                     //Check if it's indexed
-                    $property = $this->getSearchableProperty(substr($name, 9));
+                    $property = $this->getSearchableProperty(substr($name, $len));
 
                     //Find the relation
                     if ($relation = $this->getIndex()->findOne($property, $arguments[0]))
@@ -358,14 +394,24 @@ class Repository
         }
 
         //If the call starts with findBy
-        elseif (strpos($name, 'findBy') === 0)
+        elseif ((strpos($name, 'findBy') === 0) || (strpos($name, 'find_by') === 0))
         {
+
+            //Get the appropriate sub string length, based on the notation
+            if(strpos($name, 'findBy') === 0)
+            {
+                $len = strlen('findBy');
+            }
+            else
+            {
+                $len = strlen('find_by');
+            }
 
             //If this repository is for a node
             if($this->meta instanceof Node)
             {
                 //Get the property
-                $property = $this->getSearchableProperty(substr($name, 6));
+                $property = $this->getSearchableProperty(substr($name, $len));
 
                 $collection = new ArrayCollection;
 
@@ -381,7 +427,7 @@ class Repository
             else
             {
                 //Singularize the property
-                $prop = Meta\Reflection::singularizeProperty(substr($name, 6));
+                $prop = Meta\Reflection::singularizeProperty(substr($name, $len));
 
                 //If it's the start or end
                 if($prop == $this->meta->getStart()->getName() || $prop == $this->meta->getEnd()->getName())
@@ -403,7 +449,7 @@ class Repository
                 else
                 {
                     //Check if it's indexed
-                    $property = $this->getSearchableProperty(substr($name, 6));
+                    $property = $this->getSearchableProperty(substr($name, $len));
 
                     $collection = new ArrayCollection;
 
@@ -416,8 +462,6 @@ class Repository
                 }
             }
         }
-
-        
     }
 
     /**

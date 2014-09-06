@@ -23,7 +23,7 @@ use LRezek\Neo4PHP\Meta\Relation;
  * as well as entity management. In order to use this library, you must create an instance of this class with the correct
  * configuration and use the available methods for database access.
  *
- * @package Neo4j
+ * @package Neo4PHP
  */
 class EntityManager
 {
@@ -727,7 +727,9 @@ class EntityManager
      * specifying the correct annotation.
      *
      * @param string $class Fully qualified class name
-     * @throws Exception Thrown if the repository class does not extend the base repository class.
+     * @return mixed The repository for the class
+     * @throws Exception Thrown if the repository class does not extend the base repository class
+     * @api
      */
     function getRepository($class)
     {
@@ -751,6 +753,19 @@ class EntityManager
         }
 
         return $this->repositories[$class];
+    }
+
+    /**
+     * Enables underscore convention for getRepository.
+     *
+     * @param string $class Fully qualified class name
+     * @return mixed The repository for the class
+     * @throws Exception Thrown if the repository class does not extend the base repository class
+     * @api
+     */
+    function get_repository($class)
+    {
+        return $this->getRepository($class);
     }
 
     /**
