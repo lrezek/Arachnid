@@ -1,9 +1,11 @@
 ## About
 
-Arachnid is a PHP object graph mapper for Neo4J. It is built on top of [Josh Adell's Neo4J PHP Rest interface](https://github.com/jadell/neo4jphp).
+Arachnid is a PHP object graph mapper for Neo4J. Spiders manage webs, Arachnid manages Neo4J Graphs.
 
 This library is heavily based on the excellent work done by Louis-Philippe Huberdeau in his [PHP OGM](https://github.com/lphuberdeau/Neo4j-PHP-OGM).
 The main difference is that this OGM allows you to define relationship objects as well as node objects, allowing you to attach properties to relationships very easily.
+
+Arachnid is built on top of [Josh Adell's Neo4J PHP Rest interface](https://github.com/jadell/neo4jphp).
 
 Released under the MIT Licence.
 
@@ -15,11 +17,11 @@ To install the library through composer, you simply need to add the following to
 {
     "require": {
        "everyman/neo4jphp":"dev-master",
-       "lrezek/Arachnid":"dev-master"
+       "lrezek/arachnid":"dev-master"
     }
 }
 ```
-Once installed, you can use the Entity manager class (`LRezek/Arachnid/EntityManager`) as required.
+Once installed, you can use the Arachnid class (`LRezek/Arachnid/Arachnid`) as required.
 
 ## Documentation and Testing
 
