@@ -15,7 +15,7 @@
         <template name="responsive-twig" />
     </transformations>
     <files>
-        <directory>src/LRezek/Neo4PHP</directory>
-        <ignore>src/LRezek/Neo4PHP/Tests/*</ignore>
+        <directory>src/LRezek/Arachnid</directory>
+        <ignore>src/LRezek/Arachnid/Tests/*</ignore>
     </files>
 </phpdoc>

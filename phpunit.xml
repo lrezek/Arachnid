@@ -15,11 +15,12 @@
     bootstrap                   = "bootstrap.php">
 
     <testsuites>
-        <testsuite name="Neo4PHP Test Suite">
-            <file>src/LRezek/Neo4PHP/Tests/QueryTest.php</file>
-            <file>src/LRezek/Neo4PHP/Tests/EntityManagerTest.php</file>
-            <file>src/LRezek/Neo4PHP/Tests/MetaTest.php</file>
-            <file>src/LRezek/Neo4PHP/Tests/RepositoryTest.php</file>
+        <testsuite name="Arachnid Test Suite">
+            <file>src/LRezek/Arachnid/Tests/QueryTest.php</file>
+            <file>src/LRezek/Arachnid/Tests/ArachnidTest.php</file>
+            <file>src/LRezek/Arachnid/Tests/ReflectionTest.php</file>
+            <file>src/LRezek/Arachnid/Tests/MetaTest.php</file>
+            <file>src/LRezek/Arachnid/Tests/RepositoryTest.php</file>
         </testsuite>
     </testsuites>
 
@@ -33,14 +34,14 @@
     <filter>
 
         <whitelist>
-            <directory>src/LRezek/Neo4PHP/Annotation</directory>
-            <directory>src/LRezek/Neo4PHP/Meta</directory>
-            <directory>src/LRezek/Neo4PHP/Proxy</directory>
-            <directory>src/LRezek/Neo4PHP/Query</directory>
-            <file>src/LRezek/Neo4PHP/Configuration.php</file>
-            <file>src/LRezek/Neo4PHP/EntityManager.php</file>
-            <file>src/LRezek/Neo4PHP/Exception.php</file>
-            <file>src/LRezek/Neo4PHP/Repository.php</file>
+            <directory>src/LRezek/Arachnid/Annotation</directory>
+            <directory>src/LRezek/Arachnid/Meta</directory>
+            <directory>src/LRezek/Arachnid/Proxy</directory>
+            <directory>src/LRezek/Arachnid/Query</directory>
+            <file>src/LRezek/Arachnid/Configuration.php</file>
+            <file>src/LRezek/Arachnid/Arachnid.php</file>
+            <file>src/LRezek/Arachnid/Exception.php</file>
+            <file>src/LRezek/Arachnid/Repository.php</file>
         </whitelist>
 
     </filter>
