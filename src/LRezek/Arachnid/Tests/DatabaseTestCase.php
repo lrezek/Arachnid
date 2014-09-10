@@ -16,8 +16,8 @@ abstract class DatabaseTestCase extends \PHPUnit_Framework_TestCase
              'transport' => 'curl', // or 'stream'
              'host' => 'localhost',
              'port' => 7474,
-             'username' => 'neo',
-             'password' => 'matrix',
+             'username' => null,
+             'password' => null,
              'proxy_dir' => '/tmp',
              'debug' => true, // Force proxy regeneration on each request
             // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
