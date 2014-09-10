@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <phpdoc>
-    <title>Neo4j PHP OGM</title>
+    <title>Arachnid</title>
     <parser>
         <target>docs</target>
         <extensions>
             <extension>php</extension>
         </extensions>
-        <visibility></visibility>
     </parser>
     <transformer>
         <target>docs</target>

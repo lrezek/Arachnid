@@ -25,8 +25,8 @@ Once installed, you can use the Arachnid class (`LRezek/Arachnid/Arachnid`) as r
 
 ## Documentation and Testing
 
-You can generate PHP Documentor docs by running `php /path/to/phpdocumentor/phpdocumentor.phar` while in the root folder of this repository.
+You can generate PHP Documentor docs by running `vendor/bin/phpunit` while in the root folder of this repository.
 
-You can run unit tests on the library by running `php /path/to/phpunit/phpunit.phar` while in the root folder of this repository.
+You can run unit tests on the library by running `vendor/bin/phpdoc` while in the root folder of this repository.
 
 For full documentation, as well as usage examples, please refer to the [wiki](https://github.com/lrezek/Arachnid/wiki/Table-of-Contents).
