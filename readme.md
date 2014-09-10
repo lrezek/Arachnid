@@ -1,4 +1,4 @@
-## About
+# Arachnid [![Build Status](https://travis-ci.org/lrezek/Arachnid.svg?branch=master)](https://travis-ci.org/lrezek/Arachnid)
 
 Arachnid is a PHP object graph mapper for Neo4J. Spiders manage webs, Arachnid manages Neo4J Graphs.
 
