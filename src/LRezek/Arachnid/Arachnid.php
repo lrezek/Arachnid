@@ -122,11 +122,8 @@ class Arachnid
         //Get a meta repository from the configuration
         $this->metaRepository = $configuration->getMetaRepository();
 
-        //Create a date generator function
-        $this->dateGenerator = function () {
-            $currentDate = new \DateTime;
-            return $currentDate->format('Y-m-d H:i:s');
-        };
+        //Get the date generator function to use
+        $this->dateGenerator = $configuration->getDateGenerator();
 
     }
 
@@ -1060,7 +1057,6 @@ class Arachnid
         //Check if there are any operations and commit the batch
         if(count($this->batch->getOperations()))
         {
-            echo("Committing Batch");
             $this->client->commitBatch();
         }
 

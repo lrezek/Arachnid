@@ -47,6 +47,9 @@ class Configuration
     /** @var string Password to use for accessing neo4j DB. Default is null. */
     private $password;
 
+    /** @var callable Date generation function to use. */
+    private $dateGenerator;
+
     /**
      * Constructor method.
      *
@@ -90,6 +93,21 @@ class Configuration
         {
             $this->username = $configs['username'];
             $this->password = $configs['password'];
+        }
+
+        //Set the date generator if required, or go default
+        if(isset($configs['date_generator']))
+        {
+            $this->dateGenerator = $configs['date_generator'];
+        }
+        else
+        {
+            //Create a default generator
+            $this->dateGenerator = function ()
+            {
+                $currentDate = new \DateTime;
+                return $currentDate->format('Y-m-d H:i:s');
+            };
         }
     }
 
@@ -141,6 +159,16 @@ class Configuration
     function getMetaRepository()
     {
         return new Meta\Repository($this->annotationReader);
+    }
+
+    /**
+     * Gets the date generator function to use.
+     *
+     * @return callable The date generator to use.
+     */
+    function getDateGenerator()
+    {
+        return $this->dateGenerator;
     }
 }
 
