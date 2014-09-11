@@ -2,7 +2,7 @@
 <phpdoc>
     <title>Arachnid</title>
     <parser>
-        <target>docs</target>
+        <target>phpdoc</target>
         <extensions>
             <extension>php</extension>
         </extensions>

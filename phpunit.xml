@@ -47,4 +47,8 @@
 
     </filter>
 
+    <logging>
+        <log type="coverage-clover" target="coveralls/clover.xml"/>
+    </logging>
+
 </phpunit>

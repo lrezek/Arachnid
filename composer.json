@@ -15,6 +15,7 @@
     },
     "require-dev": {
         "phpunit/phpunit": "4.0.19",
+        "satooshi/php-coveralls": "dev-master",
         "phpdocumentor/phpdocumentor": "2.*"
     },
     "minimum-stability": "dev",
@@ -22,5 +23,8 @@
         "psr-0": {
             "": "src/"
         }
+    },
+    "archive": {
+        "exclude": ["*/Tests", "phpunit.xml", "phpdoc.xml", ".travis.yml", ".coveralls.yml"]
     }
 }

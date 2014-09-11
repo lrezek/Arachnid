@@ -1,18 +1,28 @@
 language: php
 
 php:
-    - 5.3
-    - 5.4
-    - 5.5
+  - 5.3
+  - 5.4
+  - 5.5
 
+# Install and start Neo4J
 before_install:
-    - sudo wget -O - http://debian.neo4j.org/neotechnology.gpg.key| sudo apt-key add - # Import  signing key
-    - echo 'deb http://debian.neo4j.org/repo stable/' | sudo tee -a /etc/apt/sources.list.d/neo4j.list # Create an Apt sources.list file
-    - sudo apt-get update -qq
-    - sudo apt-get install -qq neo4j
-    - sudo /etc/init.d/neo4j-service restart
+  - sudo wget -O - http://debian.neo4j.org/neotechnology.gpg.key| sudo apt-key add - # Import  signing key
+  - echo 'deb http://debian.neo4j.org/repo stable/' | sudo tee -a /etc/apt/sources.list.d/neo4j.list # Create an Apt sources.list file
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq neo4j
+  - sudo /etc/init.d/neo4j-service restart
 
+# Install Composer an update dependencies
 before_script:
-  - composer install
+  - curl -s http://getcomposer.org/installer | php
+  - php composer.phar install --dev --no-interaction
 
-script: vendor/bin/phpunit --coverage-text
+# Run unit tests, with coveralls coverage
+script:
+  - mkdir -p coveralls                            # Make the coveralls directory
+  - php vendor/bin/phpunit -c phpunit.xml         # Invoke PHPUnit with the right configuration file
+
+# Upload to coveralls
+after_script:
+  - php vendor/bin/coveralls -c .coveralls.yml    # Invoke coveralls with the right configuration file.

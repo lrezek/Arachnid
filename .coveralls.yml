@@ -1,0 +1,14 @@
+# Coveralls settings
+
+# Specify that we're using travis-ci
+service_name: travis-ci
+
+# Sepcify that the src folder is our root
+src_dir: src
+
+# Specify the clover file to use
+coverage_clover: coveralls/clover.xml
+
+# Specify where to put the coveralls JSON file (gets uploaded to coveralls)
+json_path: coveralls/upload.json
+
