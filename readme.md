@@ -1,4 +1,4 @@
-# Arachnid [![Build Status](https://travis-ci.org/lrezek/Arachnid.svg?branch=master)](https://travis-ci.org/lrezek/Arachnid)
+# Arachnid [![Latest Stable Version](https://poser.pugx.org/lrezek/arachnid/v/stable.svg)](https://packagist.org/packages/lrezek/arachnid) [![Latest Unstable Version](https://poser.pugx.org/lrezek/arachnid/v/unstable.svg)](https://packagist.org/packages/lrezek/arachnid) [![Total Downloads](https://poser.pugx.org/lrezek/arachnid/downloads.svg)](https://packagist.org/packages/lrezek/arachnid) [![License](https://poser.pugx.org/lrezek/arachnid/license.svg)](https://packagist.org/packages/lrezek/arachnid) [![Build Status](https://travis-ci.org/lrezek/Arachnid.svg?branch=master)](https://travis-ci.org/lrezek/Arachnid)
 
 Arachnid is a PHP object graph mapper for Neo4J. Spiders manage webs, Arachnid manages Neo4J Graphs.
 
