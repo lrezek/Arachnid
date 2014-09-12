@@ -11,7 +11,7 @@
         <target>phpdoc</target>
     </transformer>
     <transformations>
-        <template name="new-black" />
+        <template name="responsive-twig" />
     </transformations>
     <files>
         <directory>src/LRezek/Arachnid</directory>
