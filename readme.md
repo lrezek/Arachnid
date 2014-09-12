@@ -7,8 +7,6 @@ The main difference is that this OGM allows you to define relationship objects a
 
 Arachnid is built on top of [Josh Adell's Neo4J PHP Rest interface](https://github.com/jadell/neo4jphp).
 
-Released under the MIT Licence.
-
 ## Installation through Composer
 
 To install the library through composer, you simply need to add the following to `composer.json` and run `composer update`:
@@ -25,8 +23,8 @@ Once installed, you can use the Arachnid class (`LRezek/Arachnid/Arachnid`) as r
 
 ## Documentation and Testing
 
-You can generate PHP Documentor docs by running `vendor/bin/phpunit` while in the root folder of this repository.
+You can generate PHP Documentor docs by running `vendor/bin/phpdoc` while in the root folder of this repository.
 
-You can run unit tests on the library by running `vendor/bin/phpdoc` while in the root folder of this repository.
+You can run unit tests on the library by running `vendor/bin/phpunit` while in the root folder of this repository.
 
 For full documentation, as well as usage examples, please refer to the [wiki](https://github.com/lrezek/Arachnid/wiki/Table-of-Contents).
