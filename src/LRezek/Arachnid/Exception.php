@@ -33,18 +33,19 @@ class Exception extends \Exception
     public function __construct($message = null, $code = 0, \Exception $previous = null, Query $query = null)
     {
         parent::__construct($message, $code, $previous);
-        $this->query = $query;
+        $this->setQuery($query);
     }
 
     /**
      * Returns the query that caused the exception.
      *
-     * @return Query The query that caused this exception.
+     * @return String The query that caused this exception.
      * @api
      */
     public function getQuery() 
     {
-        return $this->query;
+        //Grab the query string from the everyman query.
+        return $this->query->getQuery();
     }
 
     /**

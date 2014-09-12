@@ -5,6 +5,7 @@ use Everyman\Neo4j\Cypher\Query as EM_QUERY;
 use LRezek\Arachnid\Arachnid;
 use LRezek\Arachnid\Tests\Entity\FriendsWith;
 use LRezek\Arachnid\Tests\Entity\User;
+use LRezek\Arachnid\Exception;
 
 class QueryTest extends DatabaseTestCase
 {
@@ -347,8 +348,25 @@ class QueryTest extends DatabaseTestCase
 
     }
 
-    //*****************************************************
-    //***** STRESS TESTS **********************************
-    //*****************************************************
+    function testGarbageQuery()
+    {
+        $em = $this->getArachnid();
+
+        //Create a garbage query
+        $query = $em->createCypherQuery();
+        $query->match("hello");
+
+        try
+        {
+            $query->getOne();
+            $this->fail();
+        }
+        catch(Exception $e)
+        {
+            $this->assertEquals('match hello'.PHP_EOL, $e->getQuery());
+        }
+    }
+
+
 
 }

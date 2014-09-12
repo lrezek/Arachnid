@@ -272,6 +272,8 @@ class Cypher
         {
             return $this->convertValue($result[0][0]);
         }
+
+        return null;
     }
 
     /**
@@ -372,24 +374,30 @@ class Cypher
         }
 
         //Add matches
-        if (count($this->match))
+        if(count($this->match))
         {
             $query .= 'match ' . implode(', ', $this->match) . PHP_EOL;
         }
 
         //Add where's
-        if (count($this->where)) {
+        if(count($this->where))
+        {
             $query .= 'where (' . implode(') AND (', $this->where) . ')' . PHP_EOL;
         }
 
         //Add returns
-        $query .= 'return ' . implode(', ', $this->return) . PHP_EOL;
+        if(count($this->return))
+        {
+            $query .= 'return ' . implode(', ', $this->return) . PHP_EOL;
+        }
 
-        if (count($this->order)) {
+        if (count($this->order))
+        {
             $query .= 'order by ' . implode(', ', $this->order) . PHP_EOL;
         }
 
-        if ($this->limit) {
+        if ($this->limit)
+        {
             $query .= 'limit ' . $this->limit . PHP_EOL;
         }
 

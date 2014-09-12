@@ -34,7 +34,7 @@ class ParameterProcessor
      *
      * @param string $mode The mode to use (default = "cypher")
      */
-    function __construct($mode = 'cypher')
+    function __construct($mode = ParameterProcessor::CYPHER)
     {
         $this->mode = $mode;
     }
