@@ -47,41 +47,34 @@ abstract class GraphElement
     }
 
     /**
-     * Loads the required properties.
+     * Loads a property into this graph element.
      *
-     * Loops through properties and saves them based on their annotation, using the annotation reader supplied.
-     * Properties are saved in <code>$this->properties</code>, indexed properties are saved in <code>$this->indexedProperties</code>, and the
-     * primary key is saved in <code>$this->primaryKey</code>.
+     * This loads a property object into the graph element. If the property is the primary key, it is remembered in
+     * <code>$this->primaryKey</code>, if it is a property, it is saved in <code>$this->properties</code>. If it is indexed,
+     * it is saved to <code>$this->indexedProperties</code>
      *
-     * @param \Doctrine\Common\Annotations\AnnotationReader $reader The annotation reader to use.
-     * @param mixed[] $properties The properties to load.
+     * @param Property $prop The property to load.
      */
-    public function loadProperties($reader, $properties)
-	{
-        //Loop through properties
-        foreach ($properties as $property)
+    public function loadProperty($prop)
+    {
+        //Save primary key
+        if($prop->isPrimaryKey())
         {
-            $prop = new Property($reader, $property);
+            $this->setPrimaryKey($prop);
+        }
 
-            //Check for primary key
-            if ($prop->isPrimaryKey())
+        //Save property
+        else if($prop->isProperty())
+        {
+            $this->properties[] = $prop;
+
+            //Check for indexed properties
+            if ($prop->isIndexed())
             {
-                $this->setPrimaryKey($prop);
-            }
-
-            //Make sure it's a property
-            elseif ($prop->isProperty())
-            {
-                $this->properties[] = $prop;
-
-                //Check for indexed properties
-                if ($prop->isIndexed())
-                {
-                    $this->indexedProperties[] = $prop;
-                }
+                $this->indexedProperties[] = $prop;
             }
         }
-	}
+    }
 
     /**
      * Returns the name of the class extending this class.
@@ -147,6 +140,7 @@ abstract class GraphElement
             }
         }
 
+        return null;
     }
 
     /**
@@ -162,26 +156,28 @@ abstract class GraphElement
     {
         if ($this->primaryKey)
         {
-             throw new Exception("Class {$this->className} contains multiple targets for @Auto");
+             throw new Exception("Class {$this->className} contains multiple targets for @Auto.");
         }
 
         $this->primaryKey = $property;
     }
 
     /**
-     * Ensures the Graph Element contains a property designated as the private key.
+     * Ensures the Graph Element contains a property designated as the private key, and does some other annotation checks.
      *
      * This validates that the graph element's meta contains a property designated as the primary key
-     * (has the @auto annotation).
+     * (has the @auto annotation). It also validates that a node does not have a start or end annotation.
      *
      * @throws \LRezek\Arachnid\Exception "Class contains no @auto property" exception.
      */
     function validate()
     {
-        if (! $this->primaryKey)
+        if (!$this->primaryKey)
         {
-             throw new Exception("Class {$this->className} contains no @Auto property");
+             throw new Exception("Class {$this->className} contains no @Auto property.");
         }
+
+        //Validate that there is only a node or relation annotation
 
     }
 

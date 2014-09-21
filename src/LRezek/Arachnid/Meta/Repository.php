@@ -37,7 +37,7 @@ class Repository
     function __construct($annotationReader = null)
     {
         //Initialize annotation reader
-        if ($annotationReader instanceof Reader)
+        if($annotationReader instanceof Reader)
         {
             $this->reader = $annotationReader;
         }
@@ -56,7 +56,7 @@ class Repository
      */
     function fromClass($className)
     {
-        if (! isset($this->metas[$className]))
+        if(!isset($this->metas[$className]))
         {
             $this->metas[$className] = $this->findMeta($className, $this);
         }
@@ -76,64 +76,52 @@ class Repository
         $class = new \ReflectionClass($className);
 
         //If it's a proxy class, use the parent for meta
-        if ($class->implementsInterface('LRezek\\Arachnid\\Proxy\\Entity'))
+        if($class->implementsInterface('LRezek\\Arachnid\\Proxy\\Entity'))
         {
             $class = $class->getParentClass();
         }
 
-        //Handle nodes
-        if ($entity = $this->reader->getClassAnnotation($class, 'LRezek\\Arachnid\\Annotation\\Node'))
+        $node = $this->reader->getClassAnnotation($class, 'LRezek\\Arachnid\\Annotation\\Node');
+        $relation = $this->reader->getClassAnnotation($class, 'LRezek\\Arachnid\\Annotation\\Relation');
+
+        //Throw an error if it has both annotations
+        if($node && $relation)
         {
-			return $this->handleNode($entity, $class);
-		}
+            throw new Exception("Class $className is defined as both a node and relation.");
+        }
+
+        //Handle nodes
+        if($node)
+        {
+            //Save the node to common object
+            $entity = $node;
+
+            //Create the node
+            $object = new Node($class->getName());
+        }
 
         //Handle Relations
-        elseif ($entity = $this->reader->getClassAnnotation($class, 'LRezek\\Arachnid\\Annotation\\Relation'))
+        else if($relation)
         {
-			return $this->handleRelation($entity, $class);
-		}
+            //Save the relation to a common object
+            $entity = $relation;
+
+            //Create the relation
+            $object = new Relation($class->getName());
+        }
 
         //Unknown annotation
         else
         {
             $className = $class->getName();
-			throw new Exception("Class $className is not declared as a node or relation.");
+            throw new Exception("Class $className is not declared as a node or relation.");
         }
-	}
 
-    /**
-     * Handles meta loading for node objects.
-     *
-     * @param mixed $node The node object.
-     * @param \ReflectionClass $class A reflection class of the node class.
-     * @return Node The node meta object.
-     */
-    private function handleNode($node, $class)
-	{
-        $object = new Node($class->getName());
+        //Set the objects repo class
+        $object->setRepositoryClass($entity->repositoryClass);
 
-		$object->setRepositoryClass($node->repositoryClass);
+        //Load object properties, and validate it
         $object->loadProperties($this->reader, $class->getProperties());
-        $object->validate();
-
-        return $object;
-    }
-
-    /**
-     * Handles meta loading for relation objects.
-     *
-     * @param mixed $relation The relation object.
-     * @param \ReflectionClass $class A reflection class of the relation class.
-     * @return Relation The relation meta object.
-     */
-	private function handleRelation($relation, $class)
-	{
-        $object = new Relation($class->getName());
-
-        $object->setRepositoryClass($relation->repositoryClass);
-        $object->loadProperties($this->reader, $class->getProperties());
-		$object->loadEnd($this->reader, $class->getProperties());
-        $object->loadStart($this->reader, $class->getProperties());
         $object->validate();
 
         return $object;

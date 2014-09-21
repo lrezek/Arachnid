@@ -1,6 +1,6 @@
 <?php
 
-namespace LRezek\Arachnid\Tests\Entity;
+namespace LRezek\Arachnid\Tests\Entity\Broken;
 use LRezek\Arachnid\Annotation as OGM;
 
 

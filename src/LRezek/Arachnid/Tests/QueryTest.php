@@ -171,6 +171,90 @@ class QueryTest extends DatabaseTestCase
         $em->flush();
 
     }
+
+    function testCypherQueryMatchNodeGet_List()
+    {
+        $queryObj = null;
+        $timeElapsed = null;
+        $paramsArray = null;
+        $em = $this->getArachnid();
+
+        $em->registerEvent(Arachnid::QUERY_RUN, function (\Everyman\Neo4j\Cypher\Query $query, $parameters, $time) use (& $queryObj, & $timeElapsed, & $paramsArray) {
+            $queryObj = $query;
+            $timeElapsed = $time;
+            $paramsArray = $parameters;
+        });
+
+        $t = microtime(true);
+
+        $set = $em->create_cypher_query()
+            ->match('(movie:`LRezek\Arachnid\Tests\Entity\User`)')
+            ->where('movie.testId="'.$this->id.'"')
+            ->end('movie')
+            ->get_list();
+
+        $this->printTime(__FUNCTION__, microtime(true) - $t);
+
+        $this->assertEquals(count($set), 5);
+        $this->assertInstanceOf('Everyman\Neo4j\Cypher\Query', $queryObj);
+        $this->assertEmpty($paramsArray);
+        $this->assertGreaterThan(0, $timeElapsed);
+
+    }
+    function testCypherQueryMatchNodeGet_One()
+    {
+        $em = $this->getArachnid();
+
+        $t = microtime(true);
+
+        $set = $em->create_cypher_query()
+            ->match('(movie:`LRezek\Arachnid\Tests\Entity\User`)')
+            ->where('movie.testId="'.$this->id.'"','movie.firstName="Edward"')
+            ->end('movie')
+            ->get_one();
+
+        $this->printTime(__FUNCTION__, microtime(true) - $t);
+
+        $this->assertEquals(count($set), 1);
+        $this->assertEquals($set->getFirstName(), "Edward");
+
+    }
+    function testCypherQueryMatchNodeGet_Result()
+    {
+        $em = $this->getArachnid();
+
+        $p1 = new User();
+        $p1->setFirstName("Angelina");
+        $p1->setLastName("Pitt");
+        $p1->setTestId($this->id);
+
+        $em->persist($p1);
+        $em->flush();
+
+        $t = microtime(true);
+
+        $set = $em->create_cypher_query()
+            ->match('(movie:`LRezek\Arachnid\Tests\Entity\User`)')
+            ->where('movie.testId="'.$this->id.'"','movie.firstName="Angelina"')
+            ->end('movie')
+            ->get_result();
+
+        $this->printTime(__FUNCTION__, microtime(true) - $t);
+
+        $this->assertEquals(count($set), 2);
+
+        foreach($set[0] as $node)
+        {
+            $this->assertEquals($node->getFirstName(), 'Angelina');
+        }
+
+        //Remove temp node
+        $em->reload($p1);
+        $em->remove($p1);
+        $em->flush();
+
+    }
+
     function testCypherQueryStartNodeGetList()
     {
         $em = $this->getArachnid();
@@ -201,6 +285,30 @@ class QueryTest extends DatabaseTestCase
             ->startWithNode('movie', $user)
             ->end('movie')
             ->getList();
+
+        $this->printTime(__FUNCTION__, microtime(true) - $t);
+
+        $this->assertEquals(count($set), 1);
+
+        foreach($set as $node)
+        {
+            $this->assertEquals($node->getFirstName(), 'Edward');
+        }
+
+    }
+    function testCypherQueryStart_With_NodeGetList() {
+
+        $em = $this->getArachnid();
+
+        //Grab a node
+        $user = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User')->findOneByFirstName('Edward');
+
+        $t = microtime(true);
+
+        $set = $em->create_cypher_query()
+            ->start_with_node('movie', $user)
+            ->end('movie')
+            ->get_list();
 
         $this->printTime(__FUNCTION__, microtime(true) - $t);
 
@@ -288,6 +396,28 @@ class QueryTest extends DatabaseTestCase
         }
 
     }
+    function testCypherQueryStart_With_Query() {
+
+        $em = $this->getArachnid();
+
+        $t = microtime(true);
+
+        $set = $em->create_cypher_query()
+            ->start_with_query('movie','LRezek\\Arachnid\\Tests\\Entity\\User', 'firstName:Edward')
+            ->where('movie.testId="'.$this->id.'"')
+            ->end('movie')
+            ->getList();
+
+        $this->printTime(__FUNCTION__, microtime(true) - $t);
+
+        $this->assertEquals(count($set), 1);
+
+        foreach($set as $node)
+        {
+            $this->assertEquals($node->getFirstName(), 'Edward');
+        }
+
+    }
     function testCypherQueryStartWithLookup() {
 
         $em = $this->getArachnid();
@@ -296,6 +426,28 @@ class QueryTest extends DatabaseTestCase
 
         $set = $em->createCypherQuery()
             ->startWithLookup('movie', 'LRezek\\Arachnid\\Tests\\Entity\\User', 'firstName', 'Edward')
+            ->where('movie.testId="'.$this->id.'"')
+            ->end('movie')
+            ->getList();
+
+        $this->printTime(__FUNCTION__, microtime(true) - $t);
+
+        $this->assertEquals(count($set), 1);
+
+        foreach($set as $node)
+        {
+            $this->assertEquals($node->getFirstName(), 'Edward');
+        }
+
+    }
+    function testCypherQueryStart_With_Lookup() {
+
+        $em = $this->getArachnid();
+
+        $t = microtime(true);
+
+        $set = $em->create_cypher_query()
+            ->start_with_lookup('movie', 'LRezek\\Arachnid\\Tests\\Entity\\User', 'firstName', 'Edward')
             ->where('movie.testId="'.$this->id.'"')
             ->end('movie')
             ->getList();
@@ -363,7 +515,11 @@ class QueryTest extends DatabaseTestCase
         }
         catch(Exception $e)
         {
+            //Standard notation
             $this->assertEquals('match hello'.PHP_EOL, $e->getQuery());
+
+            //Underscore notation
+            $this->assertEquals('match hello'.PHP_EOL, $e->get_query());
         }
     }
 

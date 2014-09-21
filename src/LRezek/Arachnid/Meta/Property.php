@@ -22,7 +22,7 @@ namespace LRezek\Arachnid\Meta;
  */
 class Property
 {
-
+    const ANNOTATION_NAMESPACE = 'LRezek\\Arachnid\\Annotation';
     const AUTO = 'LRezek\\Arachnid\\Annotation\\Auto';
     const PROPERTY = 'LRezek\\Arachnid\\Annotation\\Property';
     const INDEX = 'LRezek\\Arachnid\\Annotation\\Index';
@@ -43,32 +43,31 @@ class Property
     /** @var string The format of the property. */
     private $format = 'scalar';
 
+    /** @var array The annotations attached ot the property. */
+    private $annotations = array();
+
     /**
      * Constructor. Saves the annotation reader and the actual property.
      *
      * @param \Doctrine\Common\Annotations\AnnotationReader $reader Annotation reader to use.
-     * @param \LRezek\Arachnid\Annotation\Property $property The property to use.
+     * @param \ReflectionProperty $property A reflection property from the entity class.
      */
     function __construct($reader, $property)
     {
         //Take the reader
         $this->reader = $reader;
 
-        //Take the actual property value
+        //Take the reflection property
         $this->property = $property;
 
+        //Get the reflection properties name, after normalizing
+        $this->name = Reflection::normalizeProperty($property->getName());
 
-        if ($this->isProperty())
-        {
-            //Get the properties name
-            $this->name = $property->getName();
-        }
+        //Save the properties annotations.
+        $this->annotations = $this->reader->getPropertyAnnotations($this->property);
 
-        else
-        {
-            //As far as we know only relation list are collections with names we can 'normalize'
-            $this->name = Reflection::singularizeProperty($property->getName());
-        }
+        //Validate annotations
+        $this->validateAnnotations();
 
         //Make the property accessible if it is private
         $property->setAccessible(true);
@@ -81,7 +80,7 @@ class Property
      */
     function isPrimaryKey()
     {
-        return !! $this->reader->getPropertyAnnotation($this->property, self::AUTO);
+        return $this->getAnnotationIndex(self::AUTO) >= 0;
     }
 
     /**
@@ -91,7 +90,7 @@ class Property
      */
     function isStart()
     {
-        return !! $this->reader->getPropertyAnnotation($this->property, self::START);
+        return $this->getAnnotationIndex(self::START) >= 0;
     }
 
     /**
@@ -101,7 +100,7 @@ class Property
      */
     function isEnd()
     {
-        return !! $this->reader->getPropertyAnnotation($this->property, self::END);
+        return $this->getAnnotationIndex(self::END) >= 0;
     }
 
     /**
@@ -111,11 +110,14 @@ class Property
      */
     function isProperty()
     {
-        //Use the annotation reader to determine if this is an actual property.
-        if ($annotation = $this->reader->getPropertyAnnotation($this->property, self::PROPERTY))
+        //Get the annotation index
+        $i = $this->getAnnotationIndex(self::PROPERTY);
+
+        //If the property annotation is on here
+        if($i >= 0)
         {
             //Set the format (Date, JSON, scalar, etc)
-            $this->format = $annotation->format;
+            $this->format = $this->annotations[$i]->format;
 
             //This is a property
             return true;
@@ -135,7 +137,7 @@ class Property
      */
     function isIndexed()
     {
-        return !! $this->reader->getPropertyAnnotation($this->property, self::INDEX);
+        return $this->getAnnotationIndex(self::INDEX) >= 0;
     }
 
     /**
@@ -240,7 +242,7 @@ class Property
             if (
                 0 === strcasecmp($name, $this->name) ||
                 0 === strcasecmp($name, $this->property->getName()) ||
-                0 === strcasecmp($name, Reflection::singularizeProperty($this->property->getName()))
+                0 === strcasecmp($name, Reflection::normalizeProperty($this->property->getName()))
             )
             {
                 return true;
@@ -258,6 +260,77 @@ class Property
     public function getFormat()
     {
         return $this->format;
+    }
+
+    /**
+     * Validates the annotation combination on a property.
+     *
+     * @throws \Exception If the combination is invalid in some way.
+     */
+    private function validateAnnotations()
+    {
+        //Count annotations in the annotation namespace, ignore annotations not in our namespace
+        $count = 0;
+        foreach($this->annotations as $a)
+        {
+            //If you find the namespace in the class name, add to count
+            if(strrpos(get_class($a), self::ANNOTATION_NAMESPACE) !== false)
+            {
+                $count++;
+            }
+        }
+
+        switch($count)
+        {
+            //0 annotations, just ignore
+            case 0:
+
+                return;
+
+            //1 Annotation, it can't be index.
+            case 1:
+
+                if($this->getAnnotationIndex(self::INDEX) < 0)
+                {
+                    //It's not index, return.
+                    return;
+                }
+
+                throw new \Exception("@Index cannot be the only annotation on {$this->name} in {$this->property->getDeclaringClass()->getName()}.");
+
+            //2 Annotations, they have to be index and property.
+            case 2:
+
+                if( ($this->getAnnotationIndex(self::PROPERTY) >= 0) && ($this->getAnnotationIndex(self::INDEX) >= 0))
+                {
+                    //They are index and property, return
+                    return;
+                }
+
+                break;
+        }
+
+        //It didn't fall into any of the categories, must be invalid
+        throw new \Exception("Invalid annotation combination on {$this->name} in {$this->property->getDeclaringClass()->getName()}.");
+    }
+
+    /**
+     * Gets the index of a annotation with the value specified, or -1 if it's not in the annotations array.
+     *
+     * @param String $name The annotation class.
+     * @return int The index of the annotation in the annotations array().
+     */
+    private function getAnnotationIndex($name)
+    {
+        for($i = 0; $i < count($this->annotations); $i++)
+        {
+            if($this->annotations[$i] instanceof $name)
+            {
+                return $i;
+            }
+        }
+
+        return -1;
     }
 }
 

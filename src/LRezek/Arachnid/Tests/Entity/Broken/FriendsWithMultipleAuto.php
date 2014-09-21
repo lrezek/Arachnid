@@ -1,12 +1,22 @@
 <?php
-namespace LRezek\Arachnid\Tests\Entity;
+namespace LRezek\Arachnid\Tests\Entity\Broken;
 use LRezek\Arachnid\Annotation as OGM;
 
 /**
  * @OGM\Relation
  */
-class FriendsWithNoAuto
+class FriendsWithMultipleAuto
 {
+	/**
+	 * @OGM\Auto
+	 */
+	protected $id;
+
+    /**
+     * @OGM\Auto
+     */
+    protected $id2;
+
     /**
      * @OGM\Start
      */

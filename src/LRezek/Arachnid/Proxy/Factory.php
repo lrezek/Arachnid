@@ -110,7 +110,7 @@ class Factory
             $name = $property->getName();
 
             //If the value isn't null in the DB, set the property to the correct value
-            if ($value = $entity->getProperty($name))
+            if($value = $entity->getProperty($name))
             {
                 $property->setValue($proxy, $value);
                 $proxy->__addHydrated($name);
@@ -140,7 +140,7 @@ class Factory
         $className = $meta->getName();
 
         //If the class already exists, just make an instance of it with the correct properties and return it.
-        if (class_exists($proxyClass, false))
+        if(class_exists($proxyClass, false))
         {
             return $this->newInstance($proxyClass);
         }
@@ -149,7 +149,7 @@ class Factory
         $targetFile = "{$this->proxyDir}/$proxyClass.php";
 
         //If the file doesn't exist
-        if ($this->debug || !file_exists($targetFile))
+        if($this->debug || !file_exists($targetFile))
         {
             //Initialize functions
             $functions = '';
@@ -160,7 +160,7 @@ class Factory
             foreach ($reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $method)
             {
                 //If the method isn't a constructor, destructor, or final, add it to the methods via method proxy.
-                if (! $method->isConstructor() && ! $method->isDestructor() && ! $method->isFinal())
+                if(!$method->isConstructor() && !$method->isDestructor() && !$method->isFinal())
                 {
                     $functions .= $this->methodProxy($method, $meta);
                 }
@@ -172,7 +172,7 @@ class Factory
 
             //Filter out private properties
             $properties = array_filter($properties, function ($property) {
-                return ! $property->isPrivate();
+                return !$property->isPrivate();
             });
 
             //Create an array map by property name
@@ -198,7 +198,8 @@ class $proxyClass extends $className implements LRezek\\Arachnid\\Proxy\\Entity
     {
         \$entity = new $className;
 
-        foreach (\$this->neo4j_meta->getProperties() as \$prop) {
+        foreach (\$this->neo4j_meta->getProperties() as \$prop)
+        {
             \$prop->setValue(\$entity, \$prop->getValue(\$this));
         }
 
@@ -238,17 +239,20 @@ class $proxyClass extends $className implements LRezek\\Arachnid\\Proxy\\Entity
     private function __load(\$name, \$propertyName)
     {
         //Already hydrated
-        if (in_array(\$propertyName, \$this->neo4j_hydrated)) {
+        if(in_array(\$propertyName, \$this->neo4j_hydrated))
+        {
             return;
         }
 
-        if (! \$this->neo4j_meta) {
+        if(! \$this->neo4j_meta)
+        {
             throw new \\LRezek\\Arachnid\\Exception('Proxy not fully initialized.');
         }
 
         \$property = \$this->neo4j_meta->findProperty(\$name);
 
-        if (strpos(\$name, 'set') === 0) {
+        if(strpos(\$name, 'set') === 0)
+        {
             \$this->__addHydrated(\$propertyName);
             return;
         }
@@ -289,19 +293,18 @@ class $proxyClass extends $className implements LRezek\\Arachnid\\Proxy\\Entity
 CONTENT;
 
             //Make sure the proxy directory is an actual directory
-            if ( ! is_dir($this->proxyDir))
+            if(!is_dir($this->proxyDir))
             {
-                if (false === @mkdir($this->proxyDir, 0775, true))
+                if(false === @mkdir($this->proxyDir, 0775, true))
                 {
-                    throw new Exception('Proxy Dir is not writable');
+                    throw new Exception('Proxy Dir is not writable.');
                 }
-
             }
 
             //Make sure the directory is writable
-            else if ( ! is_writable($this->proxyDir))
+            else if(!is_writable($this->proxyDir))
             {
-                throw new Exception('Proxy Dir is not writable');
+                throw new Exception('Proxy Dir is not writable.');
             }
 
             //Write the file
@@ -328,7 +331,8 @@ CONTENT;
     {
         static $prototypes = array();
 
-        if (!array_key_exists($proxyClass, $prototypes)) {
+        if(!array_key_exists($proxyClass, $prototypes))
+        {
             $prototypes[$proxyClass] = unserialize(sprintf('O:%d:"%s":0:{}', strlen($proxyClass), $proxyClass));
         }
 
@@ -349,13 +353,13 @@ CONTENT;
         $property = $meta->findProperty($method->getName());
 
         //If it is not, don't need the proxy
-        if (! $property)
+        if(!$property)
         {
             return;
         }
 
         //If the method is a straight up property, you don't need a method proxy either.
-        if ($property->isProperty() && !$property->isStart() && !$property->isEnd())
+        if($property->isProperty() && !$property->isStart() && !$property->isEnd())
         {
             return;
         }
@@ -373,25 +377,25 @@ CONTENT;
             $arg = $variable;
 
             //If the parameter is optional, set it to its default value in the arguments list.
-            if ($parameter->isOptional())
+            if($parameter->isOptional())
             {
                 $arg .= ' = ' . var_export($parameter->getDefaultValue(), true);
             }
 
             //If the variable is passed by reference, put in an ampersand
-            if ($parameter->isPassedByReference())
+            if($parameter->isPassedByReference())
             {
                 $arg = "& $arg";
             }
 
             //If the variable is a set class, add the class name as the type
-            elseif ($c = $parameter->getClass())
+            elseif($c = $parameter->getClass())
             {
                 $arg = $c->getName() . ' ' . $arg;
             }
 
             //If the argument is a array, add array identifier
-            if ($parameter->isArray())
+            if($parameter->isArray())
             {
                 $arg = "array $arg";
             }

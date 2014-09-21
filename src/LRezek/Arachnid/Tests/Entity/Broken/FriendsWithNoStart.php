@@ -1,26 +1,16 @@
 <?php
-namespace LRezek\Arachnid\Tests\Entity;
+namespace LRezek\Arachnid\Tests\Entity\Broken;
 use LRezek\Arachnid\Annotation as OGM;
 
 /**
  * @OGM\Relation
  */
-class FriendsWithMultipleStart
+class FriendsWithNoStart
 {
 	/**
 	 * @OGM\Auto
 	 */
 	protected $id;
-
-    /**
-     * @OGM\Start
-     */
-    protected $from;
-
-    /**
-     * @OGM\Start
-     */
-    protected $from2;
 
 	/**
 	 * @OGM\End
@@ -33,16 +23,6 @@ class FriendsWithMultipleStart
      */
     protected $since;
 
-
-    function getFrom()
-	{
-		return $this->from;
-	}
-
-	function setFrom(User $from)
-	{
-		$this->from = $from;
-	}
 
 	function getTo()
 	{

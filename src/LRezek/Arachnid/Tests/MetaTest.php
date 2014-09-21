@@ -50,81 +50,157 @@ class MetaTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('to', $start->getName());
     }
+    function testNonProperty()
+    {
+        $repo = new MetaRepository;
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\UserAnnotationlessProperty');
+
+        //Make sure it's not in properties
+        $names = array();
+        foreach ($meta->getProperties() as $property) {
+            $names[] = $property->getName();
+        }
+
+        if(in_array("prop1", $names))
+        {
+            $this->fail();
+        }
+
+        //Make sure it's not in indexed properties
+        $names = array();
+        foreach ($meta->getIndexedProperties() as $property) {
+            $names[] = $property->getName();
+        }
+
+        if(in_array("prop1", $names))
+        {
+            $this->fail();
+        }
+    }
 
     //*****************************************************
     //***** ANNOTATION EXCEPTION TESTS ********************
     //*****************************************************
     function testAnnotationlessEntity() {
 
-        $this->setExpectedException('Exception');
+        $this->setExpectedException('Exception', 'Class LRezek\Arachnid\Tests\Entity\Broken\AnnotationlessEntity is not declared as a node or relation.');
 
         $repo = new MetaRepository;
-        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\AnnotationlessEntity');
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\Broken\\AnnotationlessEntity');
+    }
+
+    function testNodeRelationEntity() {
+
+        $this->setExpectedException('Exception', 'Class LRezek\Arachnid\Tests\Entity\Broken\NodeRelationEntity is defined as both a node and relation.');
+
+        $repo = new MetaRepository;
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\Broken\\NodeRelationEntity');
+
     }
 
     function testNodeMultipleAuto() {
 
-        $this->setExpectedException('Exception');
+        $this->setExpectedException('Exception', 'Class LRezek\Arachnid\Tests\Entity\Broken\UserMultipleAuto contains multiple targets for @Auto.');
 
         $repo = new MetaRepository;
-        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\UserMultipleAuto');
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\Broken\\UserMultipleAuto');
 
     }
     function testNodeNoAuto() {
 
-        $this->setExpectedException('Exception');
+        $this->setExpectedException('Exception', 'Class LRezek\Arachnid\Tests\Entity\Broken\UserNoAuto contains no @Auto property.');
 
         $repo = new MetaRepository;
-        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\UserNoAuto');
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\Broken\\UserNoAuto');
     }
 
     function testRelationMultipleAuto() {
 
-        $this->setExpectedException('Exception');
+        $this->setExpectedException('Exception', 'Class LRezek\Arachnid\Tests\Entity\Broken\FriendsWithMultipleAuto contains multiple targets for @Auto.');
 
         $repo = new MetaRepository;
-        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\FriendsWithMultipleAuto');
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\Broken\\FriendsWithMultipleAuto');
 
     }
     function testRelationNoAuto() {
 
-        $this->setExpectedException('Exception');
+        $this->setExpectedException('Exception', 'Class LRezek\Arachnid\Tests\Entity\Broken\FriendsWithNoAuto contains no @Auto property.');
 
         $repo = new MetaRepository;
-        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\FriendsWithNoAuto');
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\Broken\\FriendsWithNoAuto');
     }
 
     function testRelationMultipleStart() {
 
-        $this->setExpectedException('Exception');
+        $this->setExpectedException('Exception', 'Class LRezek\Arachnid\Tests\Entity\Broken\FriendsWithMultipleStart contains multiple targets for @Start.');
 
         $repo = new MetaRepository;
-        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\FriendsWithMultipleStart');
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\Broken\\FriendsWithMultipleStart');
 
     }
     function testRelationNoStart() {
 
-        $this->setExpectedException('Exception');
+        $this->setExpectedException('Exception', 'Class LRezek\Arachnid\Tests\Entity\Broken\FriendsWithNoStart contains no targets for @Start.');
 
         $repo = new MetaRepository;
-        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\FriendsWithNoStart');
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\Broken\\FriendsWithNoStart');
 
     }
 
     function testRelationMultipleEnd() {
 
-        $this->setExpectedException('Exception');
+        $this->setExpectedException('Exception', 'Class LRezek\Arachnid\Tests\Entity\Broken\FriendsWithMultipleEnd contains multiple targets for @End.');
 
         $repo = new MetaRepository;
-        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\FriendsWithMultipleEnd');
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\Broken\\FriendsWithMultipleEnd');
 
     }
     function testNoEndRelation() {
 
-        $this->setExpectedException('Exception');
+        $this->setExpectedException('Exception', 'Class LRezek\Arachnid\Tests\Entity\Broken\FriendsWithNoEnd contains no targets for @End.');
 
         $repo = new MetaRepository;
-        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\FriendsWithNoEnd');
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\Broken\\FriendsWithNoEnd');
+
+    }
+    function testIndexedAuto() {
+
+        $this->setExpectedException('Exception', 'Invalid annotation combination on id in LRezek\Arachnid\Tests\Entity\Broken\IndexedAuto.');
+
+        $repo = new MetaRepository;
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\Broken\\IndexedAuto');
+
+    }
+    function testIndexOnly() {
+
+        $this->setExpectedException('Exception', '@Index cannot be the only annotation on name in LRezek\Arachnid\Tests\Entity\Broken\UserIndexOnly.');
+
+        $repo = new MetaRepository;
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\Broken\\UserIndexOnly');
+
+    }
+    function testIndexedEnd() {
+
+        $this->setExpectedException('Exception', 'Invalid annotation combination on to in LRezek\Arachnid\Tests\Entity\Broken\FriendsWithIndexedEnd.');
+
+        $repo = new MetaRepository;
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\Broken\\FriendsWithIndexedEnd');
+
+    }
+    function testNodeWithStart() {
+
+        $this->setExpectedException('Exception', 'A node entity cannot contain a start property (@Start).');
+
+        $repo = new MetaRepository;
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\Broken\\NodeWithStart');
+
+    }
+    function testNodeWithEnd() {
+
+        $this->setExpectedException('Exception', 'A node entity cannot contain an end property (@End).');
+
+        $repo = new MetaRepository;
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\Broken\\NodeWithEnd');
 
     }
 

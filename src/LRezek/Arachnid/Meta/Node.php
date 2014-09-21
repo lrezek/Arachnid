@@ -50,13 +50,37 @@ class Node extends GraphElement
     }
 
     /**
-     * Finds meta for a property by name.
+     * Loads the required properties.
      *
-     * @param string $name The name of the property.
-     * @return \LRezek\Arachnid\Meta\Property|null The property, if it is found.
+     * Loops through properties and saves them based on their annotation, using the annotation reader supplied.
+     * Properties are saved in <code>$this->properties</code>, indexed properties are saved in <code>$this->indexedProperties</code>, and the
+     * primary key is saved in <code>$this->primaryKey</code>.
+     *
+     * @param \Doctrine\Common\Annotations\AnnotationReader $reader The annotation reader to use.
+     * @param \ReflectionProperty[] $properties Array of reflection properties, from <code>reflectionClass->getProperties()</code>.
+     * @throws \Exception If the node contains a start or end property.
      */
-    function findProperty($name)
+    public function loadProperties($reader, $properties)
     {
-        return parent::findProperty($name);
-	}
+        //Loop through properties
+        foreach ($properties as $property)
+        {
+            $prop = new Property($reader, $property);
+
+            //A node can't have a start.
+            if($prop->isStart())
+            {
+                throw new \Exception("A node entity cannot contain a start property (@Start).");
+            }
+
+            //A node can't have a end.
+            else if($prop->isEnd())
+            {
+                throw new \Exception("A node entity cannot contain an end property (@End).");
+            }
+
+            //Load the property (auto, property, indexed)
+            $this->loadProperty($prop);
+        }
+    }
 }

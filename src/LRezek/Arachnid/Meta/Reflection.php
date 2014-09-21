@@ -26,16 +26,16 @@ class Reflection
     public static function getProperty($methodName)
     {
         $property = substr($methodName, 3);
-        return self::singularizeProperty($property);
+        return self::normalizeProperty($property);
     }
 
     /**
-     * Singularizes a property name, by making it lowercase and stripping off "ies" or "s"
+     * Normalizes a property name, by making it lowercase and stripping off "ies" or "s"
      *
      * @param string $property Property name to sigularize.
      * @return string Singularized property name.
      */
-    public static function singularizeProperty($property)
+    public static function normalizeProperty($property)
     {
         //Remove an underscore, so you can do get_date()
         if(substr($property,0,1) == '_')

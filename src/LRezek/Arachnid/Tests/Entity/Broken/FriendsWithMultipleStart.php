@@ -1,11 +1,11 @@
 <?php
-namespace LRezek\Arachnid\Tests\Entity;
+namespace LRezek\Arachnid\Tests\Entity\Broken;
 use LRezek\Arachnid\Annotation as OGM;
 
 /**
  * @OGM\Relation
  */
-class FriendsWithMultipleEnd
+class FriendsWithMultipleStart
 {
 	/**
 	 * @OGM\Auto
@@ -18,14 +18,14 @@ class FriendsWithMultipleEnd
     protected $from;
 
     /**
-     * @OGM\End
+     * @OGM\Start
      */
-    protected $to;
+    protected $from2;
 
 	/**
 	 * @OGM\End
 	 */
-	protected $to2;
+	protected $to;
 
     /**
      * @OGM\Property

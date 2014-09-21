@@ -168,7 +168,7 @@ class Repository
 
             foreach($criteria as $k => $v)
             {
-                $key = Meta\Reflection::singularizeProperty($k);
+                $key = Meta\Reflection::normalizeProperty($k);
 
                 //If it's the start or end
                 if($key == $this->meta->getStart()->getName() || $key == $this->meta->getEnd()->getName())
@@ -255,7 +255,7 @@ class Repository
 
             foreach($criteria as $k => $v)
             {
-                $key = Meta\Reflection::singularizeProperty($k);
+                $key = Meta\Reflection::normalizeProperty($k);
 
                 //If it's the start or end
                 if($key == $this->meta->getStart()->getName() || $key == $this->meta->getEnd()->getName())
@@ -374,7 +374,7 @@ class Repository
             else
             {
                 //Singularize the property
-                $prop = Meta\Reflection::singularizeProperty(substr($name, $len));
+                $prop = Meta\Reflection::normalizeProperty(substr($name, $len));
 
                 //If it's the start or end
                 if($prop == $this->meta->getStart()->getName() || $prop == $this->meta->getEnd()->getName())
@@ -437,7 +437,7 @@ class Repository
             else
             {
                 //Singularize the property
-                $prop = Meta\Reflection::singularizeProperty(substr($name, $len));
+                $prop = Meta\Reflection::normalizeProperty(substr($name, $len));
 
                 //If it's the start or end
                 if($prop == $this->meta->getStart()->getName() || $prop == $this->meta->getEnd()->getName())
@@ -483,11 +483,11 @@ class Repository
      */
     private function getSearchableProperty($property)
     {
-        $property = Meta\Reflection::singularizeProperty($property);
+        $property = Meta\Reflection::normalizeProperty($property);
 
         foreach ($this->meta->getIndexedProperties() as $p)
         {
-            if (Meta\Reflection::singularizeProperty($p->getName()) == $property)
+            if (Meta\Reflection::normalizeProperty($p->getName()) == $property)
             {
                 return $property;
             }

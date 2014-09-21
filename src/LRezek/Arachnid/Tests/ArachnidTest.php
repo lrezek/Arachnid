@@ -1010,4 +1010,6 @@ class ArachnidTest extends DatabaseTestCase
 //
 //    }
 
+    //TODO: Write proxy tests
+
 }

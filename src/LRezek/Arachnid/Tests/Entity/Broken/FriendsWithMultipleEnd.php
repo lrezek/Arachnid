@@ -1,21 +1,31 @@
 <?php
-namespace LRezek\Arachnid\Tests\Entity;
+namespace LRezek\Arachnid\Tests\Entity\Broken;
 use LRezek\Arachnid\Annotation as OGM;
 
 /**
  * @OGM\Relation
  */
-class FriendsWithNoEnd
+class FriendsWithMultipleEnd
 {
 	/**
 	 * @OGM\Auto
 	 */
 	protected $id;
 
+    /**
+     * @OGM\Start
+     */
+    protected $from;
+
+    /**
+     * @OGM\End
+     */
+    protected $to;
+
 	/**
-	 * @OGM\Start
+	 * @OGM\End
 	 */
-	protected $from;
+	protected $to2;
 
     /**
      * @OGM\Property
@@ -24,7 +34,7 @@ class FriendsWithNoEnd
     protected $since;
 
 
-	function getFrom()
+    function getFrom()
 	{
 		return $this->from;
 	}
@@ -32,6 +42,16 @@ class FriendsWithNoEnd
 	function setFrom(User $from)
 	{
 		$this->from = $from;
+	}
+
+	function getTo()
+	{
+		return $this->to;
+	}
+
+	function setTo(User $to)
+	{
+		$this->to = $to;
 	}
 
 	function getSince()

@@ -57,44 +57,6 @@ class Relation extends GraphElement
     }
 
     /**
-     * Loops through properties looking for a End and keeps track of it.
-     *
-     * @param $reader AnnotationReader Annotation reader to use.
-     * @param $properties Array of properties in the relation.
-     */
-    function loadEnd($reader, $properties)
-	{
-        foreach ($properties as $property)
-        {
-            $prop = new Property($reader, $property);
-
-            if($prop->isEnd())
-            {
-                $this->setEnd($prop);
-            }
-		}
-	}
-
-    /**
-     * Loops through properties looking for a Start and keeps track of it.
-     *
-     * @param $reader AnnotationReader Annotation reader to use.
-     * @param $properties Array of properties in the relation.
-     */
-    function loadStart($reader, $properties)
-    {
-        foreach ($properties as $property)
-        {
-            $prop = new Property($reader, $property);
-
-            if($prop->isStart())
-            {
-                $this->setStart($prop);
-            }
-        }
-    }
-
-    /**
      * Gets the start property of the relation.
      *
      * @return Property The start property.
@@ -114,7 +76,7 @@ class Relation extends GraphElement
     {
         if($this->start)
         {
-            throw new Exception("Class {$this->getName()} contains multiple targets for @Start");
+            throw new Exception("Class {$this->getName()} contains multiple targets for @Start.");
         }
 
         $this->start = $property;
@@ -140,7 +102,7 @@ class Relation extends GraphElement
     {
         if($this->end)
         {
-            throw new Exception("Class {$this->getName()} contains multiple targets for @End");
+            throw new Exception("Class {$this->getName()} contains multiple targets for @End.");
         }
 
         $this->end = $property;
@@ -166,13 +128,13 @@ class Relation extends GraphElement
             //Start annotation is missing
             if($this->end)
             {
-                throw new Exception("Class {$this->getName()} contains no targets for @Start");
+                throw new Exception("Class {$this->getName()} contains no targets for @Start.");
             }
 
             //End annotation is missing
             else
             {
-                throw new Exception("Class {$this->getName()} contains no targets for @End");
+                throw new Exception("Class {$this->getName()} contains no targets for @End.");
             }
         }
     }
@@ -201,5 +163,41 @@ class Relation extends GraphElement
         }
 
         return parent::findProperty($name);
+    }
+
+    /**
+     * Loads the required properties.
+     *
+     * Loops through properties and saves them based on their annotation, using the annotation reader supplied.
+     * Properties are saved in <code>$this->properties</code>, indexed properties are saved in <code>$this->indexedProperties</code>,
+     * the primary key is saved in <code>$this->primaryKey</code>, the start property is saved in <code>$this->start</code>, and the
+     * end property is saved in <code>$this->end</code>
+     *
+     * @param \Doctrine\Common\Annotations\AnnotationReader $reader The annotation reader to use.
+     * @param \ReflectionProperty[] $properties Array of reflection properties, from <code>reflectionClass->getProperties()</code>.
+     */
+    public function loadProperties($reader, $properties)
+    {
+        //Loop through properties
+        foreach ($properties as $property)
+        {
+            $prop = new Property($reader, $property);
+
+            //Load start.
+            if($prop->isStart())
+            {
+                $this->setStart($prop);
+
+            }
+
+            //Load end.
+            else if($prop->isEnd())
+            {
+                $this->setEnd($prop);
+            }
+
+            //Load the property (auto, property, indexed)
+            $this->loadProperty($prop);
+        }
     }
 }

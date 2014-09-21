@@ -22,6 +22,7 @@
             <file>src/LRezek/Arachnid/Tests/MetaTest.php</file>
             <file>src/LRezek/Arachnid/Tests/RepositoryTest.php</file>
             <file>src/LRezek/Arachnid/Tests/ConfigurationTest.php</file>
+            <file>src/LRezek/Arachnid/Tests/ProxyTest.php</file>
         </testsuite>
     </testsuites>
 
