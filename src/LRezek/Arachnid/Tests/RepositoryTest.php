@@ -7,7 +7,7 @@ use LRezek\Arachnid\Tests\Entity\User;
 
 class RepositoryTest extends DatabaseTestCase
 {
-    function __construct()
+    function setUp()
     {
         //Generate a ID, so nodes can easily be found and deleted after tests
         $this->id = uniqid();
@@ -95,7 +95,7 @@ class RepositoryTest extends DatabaseTestCase
 
     }
 
-    function __destruct()
+    function tearDown()
     {
         $id = $this->id;
         $em = $this->getArachnid();

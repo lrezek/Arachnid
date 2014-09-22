@@ -358,7 +358,7 @@ CONTENT;
             return;
         }
 
-        //If the method is a straight up property, you don't need a method proxy either.
+        //If the method is a straight up property setter/getter and not for a start/end node, you don't need a method proxy either.
         if($property->isProperty() && !$property->isStart() && !$property->isEnd())
         {
             return;

@@ -450,7 +450,8 @@ class Arachnid
 
 
         //Add all the properties
-        foreach ($meta->getProperties() as $property) {
+        foreach ($meta->getProperties() as $property)
+        {
             $result = $property->getValue($entity);
 
             $node->setProperty($property->getName(), $result);

@@ -34,7 +34,7 @@ class Property
     /** @var \Doctrine\Common\Annotations\AnnotationReader The annotation reader to use.*/
     private $reader;
 
-    /** @var \LRezek\Arachnid\Annotation\Property Property Annotation object.*/
+    /** @var \ReflectionProperty Reflection Property object.*/
     private $property;
 
     /** @var string The name of the property.*/
@@ -165,12 +165,16 @@ class Property
             case 'scalar':
                 return $raw;
 
+            //Serialize classes and arrays before putting them in the DB
+            case 'class':
             case 'array':
                 return serialize($raw);
 
+            //Json encode before putting into DB
             case 'json':
                 return json_encode($raw);
 
+            //Format the date correctly before putting in DB
             case 'date':
 
                 if ($raw)
@@ -195,25 +199,33 @@ class Property
      */
     function setValue($entity, $value)
     {
-        switch ($this->format) {
-        case 'scalar':
-            $this->property->setValue($entity, $value);
-            break;
-        case 'array':
-            $this->property->setValue($entity, unserialize($value));
-            break;
-        case 'json':
-            $this->property->setValue($entity, json_decode($value, true));
-            break;
-        case 'date':
-            $date = null;
-            if ($value) {
-                $date = new \DateTime($value . ' UTC');
-                $date->setTimezone(new \DateTimeZone(date_default_timezone_get()));
-            }
+        switch ($this->format)
+        {
+            case 'scalar':
+                $this->property->setValue($entity, $value);
+                break;
 
-            $this->property->setValue($entity, $date);
-            break;
+            //Unserialize classes and arrays before putting them back in the entity.
+            case 'class':
+            case 'array':
+                $this->property->setValue($entity, unserialize($value));
+                break;
+
+            //Decode Json from DB back into a regular assoc array before putting it into the entity.
+            case 'json':
+                $this->property->setValue($entity, json_decode($value, true));
+                break;
+
+            //Create a date time object out of the db stored date before putting it into the entity.
+            case 'date':
+                $date = null;
+                if ($value) {
+                    $date = new \DateTime($value . ' UTC');
+                    $date->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+                }
+
+                $this->property->setValue($entity, $date);
+                break;
         }
     }
 

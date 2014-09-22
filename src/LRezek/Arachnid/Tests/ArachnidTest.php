@@ -3,16 +3,18 @@
 namespace LRezek\Arachnid\Tests;
 use Everyman\Neo4j\Cypher\Query as EM_QUERY;
 use LRezek\Arachnid\Arachnid;
+use LRezek\Arachnid\Tests\Entity\ClassParamTestClass;
+use LRezek\Arachnid\Tests\Entity\UserDifferentPropertyFormats;
 
 class ArachnidTest extends DatabaseTestCase
 {
-    function __construct()
+    function setUp()
     {
         //Generate a ID, so nodes can easily be found and deleted after tests
         $this->id = uniqid();
 
     }
-    function __destruct()
+    function tearDown()
     {
         $id = $this->id;
         $em = $this->getArachnid();
@@ -975,6 +977,52 @@ class ArachnidTest extends DatabaseTestCase
     }
 
     //*****************************************************
+    //***** FUNCTIONALITY TESTS ***************************
+    //*****************************************************
+    function testPropertyFormats()
+    {
+        $user = new UserDifferentPropertyFormats();
+        $user->setTestId($this->id);
+
+        //Set a scalar
+        $user->setScalar(5);
+
+        //Set an array
+        $user->setArray(array(1,2,3));
+
+        //Set a to-Json property
+        $user->setJson(array("type"=>"json", "desc"=>"this is json in the db"));
+
+        //Set a date property
+        $date = new \DateTime('now', new \DateTimeZone('UTC'));
+        $user->setDate($date);
+
+        //Set a garbage property
+        $user->setGarbage(5);
+
+        //Set an object property
+        $obj = new ClassParamTestClass(1);
+        $user->setClass($obj);
+
+        //Flush
+        $arachnid = $this->getArachnid();
+        $arachnid->persist($user);
+        $arachnid->flush();
+        $user = $arachnid->reload($user);
+
+        //Do assertions
+        $this->assertEquals(5, $user->getScalar());
+        $this->assertEquals(array(1,2,3), $user->getArray());
+        $this->assertEquals(array("type"=>"json", "desc"=>"this is json in the db"), $user->getJson());
+        $this->assertEquals($date, $user->getDate());
+        $this->assertEquals(null, $user->getGarbage());
+        $this->assertEquals($obj, $user->getClass());
+
+    }
+
+
+
+    //*****************************************************
     //***** STRESS TESTS **********************************
     //*****************************************************
 
@@ -1009,7 +1057,5 @@ class ArachnidTest extends DatabaseTestCase
 //        $this->clearAll();
 //
 //    }
-
-    //TODO: Write proxy tests
 
 }

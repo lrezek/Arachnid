@@ -10,7 +10,7 @@ use LRezek\Arachnid\Exception;
 class QueryTest extends DatabaseTestCase
 {
 
-    function __construct()
+    function setUp()
     {
         //Generate a ID, so nodes can easily be found and deleted after tests
         $this->id = uniqid();
@@ -73,7 +73,7 @@ class QueryTest extends DatabaseTestCase
 
     }
 
-    function __destruct()
+    function tearDown()
     {
         $id = $this->id;
         $em = $this->getArachnid();
@@ -82,7 +82,6 @@ class QueryTest extends DatabaseTestCase
         $query = new EM_QUERY($em->getClient(), $queryString);
         $result = $query->getResultSet();
     }
-
 
     //*****************************************************
     //***** CYPHER TESTS **********************************

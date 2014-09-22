@@ -2,6 +2,7 @@
 
 namespace LRezek\Arachnid\Tests;
 use LRezek\Arachnid\Meta\Repository as MetaRepository;
+use LRezek\Arachnid\Tests\Entity\ClassParamTestClass;
 
 class MetaTest extends \PHPUnit_Framework_TestCase
 {
@@ -218,7 +219,7 @@ class MetaTest extends \PHPUnit_Framework_TestCase
 
         foreach($meta->getProperties() as $prop)
         {
-            if($prop->getFormat() == "scalar")
+            if($prop->getFormat() == "scalar" && !$prop->isIndexed()) //Skip the indexed test id
             {
                 //Test the get
                 if($prop->getValue($usr) != 3)
@@ -392,6 +393,42 @@ class MetaTest extends \PHPUnit_Framework_TestCase
 
         $this->fail();
 
+    }
+    function testClassProperty() {
+
+        $repo = new MetaRepository;
+        $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\UserDifferentPropertyFormats');
+
+        $usr = new Entity\UserDifferentPropertyFormats;
+
+        $testClass = new ClassParamTestClass(1);
+
+        $usr->setClass($testClass);
+        $encoded = serialize($testClass);
+
+        foreach($meta->getProperties() as $prop)
+        {
+            if($prop->getFormat() == "class")
+            {
+                //Test the get
+                if($prop->getValue($usr) != $encoded)
+                {
+                    $this->fail();
+                }
+
+                //Test the set
+                $tc = serialize(new ClassParamTestClass(2));
+                $prop->setValue($usr, $tc);
+                if($usr->getClass() != unserialize($tc))
+                {
+                    $this->fail();
+                }
+
+                return;
+            }
+        }
+
+        $this->fail();
     }
 
 }

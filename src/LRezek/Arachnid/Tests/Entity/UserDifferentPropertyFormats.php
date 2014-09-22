@@ -15,6 +15,12 @@ class UserDifferentPropertyFormats
 
     /**
      * @OGM\Property
+     * @OGM\Index
+     */
+    protected $testId;
+
+    /**
+     * @OGM\Property
      */
     protected $scalar;
 
@@ -38,6 +44,11 @@ class UserDifferentPropertyFormats
      */
     protected $garbage;
 
+    /**
+     * @OGM\Property(format="class")
+     */
+    protected $class;
+
     function setArray($array) {
         $this->array = $array;
     }
@@ -57,7 +68,6 @@ class UserDifferentPropertyFormats
     function setScalar($stuff) {
         $this->scalar = $stuff;
     }
-
 
     function getArray() {
         return $this->array;
@@ -79,5 +89,23 @@ class UserDifferentPropertyFormats
         return $this->scalar;
     }
 
-}
+    function setClass($stuff)
+    {
+        $this->class = $stuff;
+    }
 
+    function getClass()
+    {
+        return $this->class;
+    }
+
+    function getTestId()
+    {
+        return $this->testId;
+    }
+
+    function setTestId($id)
+    {
+        $this->testId = $id;
+    }
+}
