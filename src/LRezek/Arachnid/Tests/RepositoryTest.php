@@ -2,18 +2,38 @@
 
 namespace LRezek\Arachnid\Tests;
 use Everyman\Neo4j\Cypher\Query as EM_QUERY;
+use LRezek\Arachnid\Arachnid;
 use LRezek\Arachnid\Tests\Entity\FriendsWith;
 use LRezek\Arachnid\Tests\Entity\User;
 
-class RepositoryTest extends DatabaseTestCase
+class RepositoryTest extends TestLogger
 {
+    private $id;
+    private static $arachnid;
+
+    static function setUpBeforeClass()
+    {
+        self::$arachnid = new Arachnid(array(
+            'transport' => 'curl', // or 'stream'
+            'host' => 'localhost',
+            'port' => 7474,
+            'username' => null,
+            'password' => null,
+            'proxy_dir' => '/tmp',
+            'debug' => true, // Force proxy regeneration on each request
+            // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
+        ));
+    }
+
+    static function tearDownAfterClass()
+    {
+        self::$arachnid = null;
+    }
+
     function setUp()
     {
         //Generate a ID, so nodes can easily be found and deleted after tests
         $this->id = uniqid();
-
-        //Get entity manager
-        $em = $this->getArachnid();
 
         //Create users
         $p1 = new User();
@@ -86,34 +106,29 @@ class RepositoryTest extends DatabaseTestCase
                     $test_rels[$i][$j]->setSince($year++);
                     $test_rels[$i][$j]->setFrom($nodes[$i]);
                     $test_rels[$i][$j]->setTo($nodes[$j]);
-                    $em->persist($test_rels[$i][$j]);
+                    self::$arachnid->persist($test_rels[$i][$j]);
                 }
             }
         }
 
-        $em->flush();
+        self::$arachnid->flush();
 
     }
 
     function tearDown()
     {
-        $id = $this->id;
-        $em = $this->getArachnid();
-
-        $queryString = "MATCH (n {testId:'$id'}) OPTIONAL MATCH (n)-[r]-() DELETE n,r";
-        $query = new EM_QUERY($em->getClient(), $queryString);
-        $result = $query->getResultSet();
+        $queryString = "MATCH (n {testId:'$this->id'}) OPTIONAL MATCH (n)-[r]-() DELETE n,r";
+        $query = new EM_QUERY(self::$arachnid->getClient(), $queryString);
+        $query->getResultSet();
     }
 
     function testRepositoryCreation()
     {
-        $em = $this->getArachnid();
-
         //Standard camelCase
-        $repo1 = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User');
+        $repo1 = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User');
 
         //Test alternate notation
-        $repo2 = $em->get_repository('LRezek\\Arachnid\\Tests\\Entity\\User');
+        $repo2 = self::$arachnid->get_repository('LRezek\\Arachnid\\Tests\\Entity\\User');
 
         $this->assertEquals($repo1, $repo2);
     }
@@ -126,8 +141,7 @@ class RepositoryTest extends DatabaseTestCase
         $t = microtime(true);
 
         //Find a node
-        $em = $this->getArachnid();
-        $repo = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User');
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User');
 
         //Do a standard findOneBy
         $user = $repo->findOneByFirstName('Brad');
@@ -159,8 +173,7 @@ class RepositoryTest extends DatabaseTestCase
         $t = microtime(true);
 
         //Query for relation
-        $em = $this->getArachnid();
-        $repo = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith');
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith');
 
         //Grab the relation
         $rel = $repo->findOneBySince('1990');
@@ -201,7 +214,7 @@ class RepositoryTest extends DatabaseTestCase
         $t = microtime(true);
 
         //Find said node
-        $repo = $this->getArachnid()->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User');
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User');
 
         $user = $repo->findOneBy(array("firstName" => 'Brad'));
 
@@ -221,8 +234,7 @@ class RepositoryTest extends DatabaseTestCase
         $t = microtime(true);
 
         //Query for relation
-        $em = $this->getArachnid();
-        $repo = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith');
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith');
         $rel = $repo->findOneBy(array('since' => '1991'));
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
@@ -245,17 +257,16 @@ class RepositoryTest extends DatabaseTestCase
 
     }
 
-    function testRelationFindOneByStartNodeProperty() {
-
-        $em = $this->getArachnid();
+    function testRelationFindOneByStartNodeProperty()
+    {
 
         //Find the Brad node
-        $brad = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User')->findOneByFirstName('Brad');
+        $brad = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User')->findOneByFirstName('Brad');
 
         $t = microtime(true);
 
         //Find his sibling relation
-        $rel = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findOneByFrom($brad);
+        $rel = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findOneByFrom($brad);
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
@@ -298,16 +309,16 @@ class RepositoryTest extends DatabaseTestCase
         }
 
     }
-    function testRelationFindOneByEndNodeProperty() {
+    function testRelationFindOneByEndNodeProperty()
+    {
 
         //Find the christian node
-        $em = $this->getArachnid();
-        $c = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User')->findOneByFirstName('Christian');
+        $c = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User')->findOneByFirstName('Christian');
 
         $t = microtime(true);
 
         //Find his sibling relation
-        $rel = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findOneByTo($c);
+        $rel = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findOneByTo($c);
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
@@ -353,28 +364,26 @@ class RepositoryTest extends DatabaseTestCase
 
     }
 
-    function testNodeFindOneByWhenEmpty() {
-
-        $em = $this->getArachnid();
+    function testNodeFindOneByWhenEmpty()
+    {
 
         $t = microtime(true);
 
         //The database is empty, do the query
-        $user = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User')->findOneByFirstName('Jennifer');
+        $user = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User')->findOneByFirstName('Jennifer');
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         //Make sure there's nothing there
         $this->assertNull($user);
     }
-    function testRelationFindOneByWhenEmpty() {
-
-        $em = $this->getArachnid();
+    function testRelationFindOneByWhenEmpty()
+    {
 
         $t = microtime(true);
 
         //The database is empty, do the query
-        $user = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findOneBySince('2050');
+        $user = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findOneBySince('2050');
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
@@ -383,17 +392,16 @@ class RepositoryTest extends DatabaseTestCase
 
     }
 
-    function testRelationFindOneByStartNodeCriteria() {
-
-        $em = $this->getArachnid();
+    function testRelationFindOneByStartNodeCriteria()
+    {
 
         //Find the david node
-        $brad = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User')->findOneByFirstName('Brad');
+        $brad = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User')->findOneByFirstName('Brad');
 
         $t = microtime(true);
 
         //Find his sibling relation
-        $rel = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findOneBy(array('from' => $brad));
+        $rel = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findOneBy(array('from' => $brad));
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
@@ -436,17 +444,16 @@ class RepositoryTest extends DatabaseTestCase
         }
 
     }
-    function testRelationFindOneByEndNodeCriteria() {
-
-        $em = $this->getArachnid();
+    function testRelationFindOneByEndNodeCriteria()
+    {
 
         //Find the christian node
-        $c = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User')->findOneByFirstName('Christian');
+        $c = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User')->findOneByFirstName('Christian');
 
         $t = microtime(true);
 
         //Find his sibling relation
-        $rel = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findOneBy(array('to' => $c));
+        $rel = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findOneBy(array('to' => $c));
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
@@ -495,9 +502,8 @@ class RepositoryTest extends DatabaseTestCase
     //*****************************************************
     //***** FIND BY TESTS *********************************
     //*****************************************************
-    function testNodeFindByProperty() {
-
-        $em = $this->getArachnid();
+    function testNodeFindByProperty()
+    {
 
         //Make 3 nodes
         for($i = 0; $i < 3; $i++)
@@ -506,15 +512,15 @@ class RepositoryTest extends DatabaseTestCase
             $mov2->setFirstName('Bradley');
             $mov2->setLastName("Cooper");
             $mov2->setTestId($this->id);
-            $em->persist($mov2);
+            self::$arachnid->persist($mov2);
         }
 
-        $em->flush();
+        self::$arachnid->flush();
 
         $t = microtime(true);
 
         //Find the 3 nodes
-        $repo = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User');
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User');
         $nodes = $repo->findByFirstName("Bradley")->toArray();
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
@@ -549,8 +555,6 @@ class RepositoryTest extends DatabaseTestCase
     function testRelationFindByProperty()
     {
 
-        $em = $this->getArachnid();
-
         //Make 3 relations
         for($i = 0; $i < 3; $i++)
         {
@@ -569,13 +573,13 @@ class RepositoryTest extends DatabaseTestCase
             $relation->setFrom($mov2);
             $relation->setSince("2050");
 
-            $em->persist($relation);
+            self::$arachnid->persist($relation);
         }
 
-        $em->flush();
+        self::$arachnid->flush();
 
         $t = microtime(true);
-        $repo = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith');
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith');
         $relations = $repo->findBySince("2050")->toArray();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
@@ -606,9 +610,8 @@ class RepositoryTest extends DatabaseTestCase
 
     }
 
-    function testNodeFindByCriteria() {
-
-        $em = $this->getArachnid();
+    function testNodeFindByCriteria()
+    {
 
         //Make 3 nodes
         for($i = 0; $i < 3; $i++)
@@ -617,15 +620,15 @@ class RepositoryTest extends DatabaseTestCase
             $mov2->setFirstName('Uma');
             $mov2->setLastName("Therman");
             $mov2->setTestId($this->id);
-            $em->persist($mov2);
+            self::$arachnid->persist($mov2);
         }
 
-        $em->flush();
+        self::$arachnid->flush();
 
         $t = microtime(true);
 
         //Find the 3 nodes
-        $repo = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User');
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User');
         $nodes = $repo->findBy(array('firstName' => 'Uma', 'lastName' => 'Therman'))->toArray();
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
@@ -648,8 +651,6 @@ class RepositoryTest extends DatabaseTestCase
     function testRelationFindByCriteria()
     {
 
-        $em = $this->getArachnid();
-
         //Make 3 relations
         for($i = 0; $i < 3; $i++)
         {
@@ -668,15 +669,15 @@ class RepositoryTest extends DatabaseTestCase
             $relation->setFrom($mov2);
             $relation->setSince("2051");
 
-            $em->persist($relation);
+            self::$arachnid->persist($relation);
         }
 
 
-        $em->flush();
+        self::$arachnid->flush();
 
         $t = microtime(true);
 
-        $repo = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith');
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith');
         $relations = $repo->findBy(array('since' => '2051'))->toArray();
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
@@ -696,28 +697,24 @@ class RepositoryTest extends DatabaseTestCase
 
     }
 
-    function testNodeFindByWhenEmpty() {
-
-        $em = $this->getArachnid();
-
+    function testNodeFindByWhenEmpty()
+    {
         $t = microtime(true);
 
         //Do the query
-        $users = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User')->findBy(array('firstName' => 'Martha'))->toArray();
+        $users = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User')->findBy(array('firstName' => 'Martha'))->toArray();
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         //Make sure there's nothing there
         $this->assertEquals(count($users), 0);
     }
-    function testRelationFindByWhenEmpty() {
-
-        $em = $this->getArachnid();
-
+    function testRelationFindByWhenEmpty()
+    {
         $t = microtime(true);
 
         //Do the query
-        $users = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findBy(array('since' => '3000'))->toArray();
+        $users = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findBy(array('since' => '3000'))->toArray();
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
@@ -726,9 +723,8 @@ class RepositoryTest extends DatabaseTestCase
 
     }
 
-    function testRelationFindByStartNodeProperty() {
-
-        $em = $this->getArachnid();
+    function testRelationFindByStartNodeProperty()
+    {
 
         $mov1 = new Entity\User;
         $mov1->setFirstName('Charlie');
@@ -750,23 +746,22 @@ class RepositoryTest extends DatabaseTestCase
         $rel2->setFrom($mov2);
         $rel2->setSince("2053");
 
-        $em->persist($rel1);
-        $em->persist($rel2);
-        $em->flush();
+        self::$arachnid->persist($rel1);
+        self::$arachnid->persist($rel2);
+        self::$arachnid->flush();
 
         //Grab the Jamie node
-        $jam = $em->reload($mov2);
+        $jam = self::$arachnid->reload($mov2);
 
         $t = microtime(true);
-        $rels = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findByFrom($jam)->toArray();
+        $rels = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findByFrom($jam)->toArray();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         $this->assertEquals(count($rels), 2);
 
     }
-    function testRelationFindByEndNodeProperty() {
-
-        $em = $this->getArachnid();
+    function testRelationFindByEndNodeProperty()
+    {
 
         $mov1 = new Entity\User;
         $mov1->setFirstName('Jerry');
@@ -788,25 +783,23 @@ class RepositoryTest extends DatabaseTestCase
         $rel2->setFrom($mov2);
         $rel2->setSince("2055");
 
-        $em->persist($rel1);
-        $em->persist($rel2);
-        $em->flush();
+        self::$arachnid->persist($rel1);
+        self::$arachnid->persist($rel2);
+        self::$arachnid->flush();
 
         //Grab jerry
-        $jerry = $em->reload($mov1);
+        $jerry = self::$arachnid->reload($mov1);
 
         $t = microtime(true);
-        $rels = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findByTo($jerry)->toArray();
+        $rels = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findByTo($jerry)->toArray();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         $this->assertEquals(count($rels), 2);
 
     }
 
-    function testRelationFindByStartNodeCriteria() {
-
-        $em = $this->getArachnid();
-
+    function testRelationFindByStartNodeCriteria()
+    {
         $mov1 = new Entity\User;
         $mov1->setFirstName('Alec');
         $mov1->setLastName('Baldwin');
@@ -827,27 +820,25 @@ class RepositoryTest extends DatabaseTestCase
         $rel2->setFrom($mov2);
         $rel2->setSince("2057");
 
-        $em->persist($rel1);
-        $em->persist($rel2);
-        $em->flush();
+        self::$arachnid->persist($rel1);
+        self::$arachnid->persist($rel2);
+        self::$arachnid->flush();
 
         //Grab the john node
-        $john = $em->reload($mov2);
+        $john = self::$arachnid->reload($mov2);
 
         $t = microtime(true);
 
         //Find his sibling relations
-        $rels = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findBy(array('from' => $john))->toArray();
+        $rels = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findBy(array('from' => $john))->toArray();
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         $this->assertEquals(count($rels), 2);
 
     }
-    function testRelationFindByEndNodeCriteria() {
-
-        $em = $this->getArachnid();
-
+    function testRelationFindByEndNodeCriteria()
+    {
         $mov1 = new Entity\User;
         $mov1->setFirstName('Simon');
         $mov1->setLastName('Cowell');
@@ -868,17 +859,17 @@ class RepositoryTest extends DatabaseTestCase
         $rel2->setFrom($mov2);
         $rel2->setSince("2059");
 
-        $em->persist($rel1);
-        $em->persist($rel2);
-        $em->flush();
+        self::$arachnid->persist($rel1);
+        self::$arachnid->persist($rel2);
+        self::$arachnid->flush();
 
         //Grab simon
-        $simon = $em->reload($mov1);
+        $simon = self::$arachnid->reload($mov1);
 
         $t = microtime(true);
 
         //Find his sibling relation
-        $rels = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findBy(array('to' => $simon))->toArray();
+        $rels = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findBy(array('to' => $simon))->toArray();
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
@@ -889,8 +880,8 @@ class RepositoryTest extends DatabaseTestCase
     //*****************************************************
     //***** FIND ALL TESTS ********************************
     //*****************************************************
-    function testNodeFindAll() {
-
+    function testNodeFindAll()
+    {
         //Create nodes
         $mov1 = new Entity\Person();
         $mov1->setFirstName('Orlando');
@@ -902,18 +893,18 @@ class RepositoryTest extends DatabaseTestCase
         $mov2->setLastName('Kunis');
         $mov2->setTestId($this->id);
 
-        $em = $this->getArachnid();
-        $em->persist($mov1);
-        $em->persist($mov2);
-        $em->flush();
+        self::$arachnid->persist($mov1);
+        self::$arachnid->persist($mov2);
+        self::$arachnid->flush();
 
         $t = microtime(true);
-        $nodes = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\Person')->findAll()->toArray();
+        $nodes = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\Person')->findAll()->toArray();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         $this->assertEquals(count($nodes), 2);
     }
-    function testRelationFindAll() {
+    function testRelationFindAll()
+    {
 
         $mov1 = new Entity\User();
         $mov1->setFirstName('Owen');
@@ -942,14 +933,13 @@ class RepositoryTest extends DatabaseTestCase
         $relation2->setFrom($mov2);
         $relation2->setSince("2061");
 
-        $em = $this->getArachnid();
-        $em->persist($relation);
-        $em->persist($relation2);
-        $em->flush();
+        self::$arachnid->persist($relation);
+        self::$arachnid->persist($relation2);
+        self::$arachnid->flush();
 
         $t = microtime(true);
 
-        $rels = $em->getRepository('LRezek\\Arachnid\\Tests\\Entity\\Likes')->findAll()->toArray();
+        $rels = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\Likes')->findAll()->toArray();
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 

@@ -10,6 +10,8 @@
 
 namespace LRezek\Arachnid\Meta;
 
+use \LRezek\Arachnid\Exception;
+
 /**
  * Defines meta for a Node.
  *
@@ -58,7 +60,7 @@ class Node extends GraphElement
      *
      * @param \Doctrine\Common\Annotations\AnnotationReader $reader The annotation reader to use.
      * @param \ReflectionProperty[] $properties Array of reflection properties, from <code>reflectionClass->getProperties()</code>.
-     * @throws \Exception If the node contains a start or end property.
+     * @throws Exception If the node contains a start or end property.
      */
     public function loadProperties($reader, $properties)
     {
@@ -70,13 +72,13 @@ class Node extends GraphElement
             //A node can't have a start.
             if($prop->isStart())
             {
-                throw new \Exception("A node entity cannot contain a start property (@Start).");
+                throw new Exception("A node entity cannot contain a start property (@Start).");
             }
 
             //A node can't have a end.
             else if($prop->isEnd())
             {
-                throw new \Exception("A node entity cannot contain an end property (@End).");
+                throw new Exception("A node entity cannot contain an end property (@End).");
             }
 
             //Load the property (auto, property, indexed)

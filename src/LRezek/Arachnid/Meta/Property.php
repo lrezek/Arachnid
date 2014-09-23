@@ -9,6 +9,7 @@
  */
 
 namespace LRezek\Arachnid\Meta;
+use LRezek\Arachnid\Exception;
 
 /**
  * Defines meta for a Property.
@@ -189,6 +190,8 @@ class Property
                     return null;
                 }
         }
+
+        return null;
     }
 
     /**
@@ -277,7 +280,7 @@ class Property
     /**
      * Validates the annotation combination on a property.
      *
-     * @throws \Exception If the combination is invalid in some way.
+     * @throws Exception If the combination is invalid in some way.
      */
     private function validateAnnotations()
     {
@@ -308,7 +311,7 @@ class Property
                     return;
                 }
 
-                throw new \Exception("@Index cannot be the only annotation on {$this->name} in {$this->property->getDeclaringClass()->getName()}.");
+                throw new Exception("@Index cannot be the only annotation on {$this->name} in {$this->property->getDeclaringClass()->getName()}.");
 
             //2 Annotations, they have to be index and property.
             case 2:
@@ -323,7 +326,7 @@ class Property
         }
 
         //It didn't fall into any of the categories, must be invalid
-        throw new \Exception("Invalid annotation combination on {$this->name} in {$this->property->getDeclaringClass()->getName()}.");
+        throw new Exception("Invalid annotation combination on {$this->name} in {$this->property->getDeclaringClass()->getName()}.");
     }
 
     /**

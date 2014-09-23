@@ -11,6 +11,7 @@
 namespace LRezek\Arachnid\Proxy;
 
 use LRezek\Arachnid\Exception;
+use LRezek\Arachnid\Meta\GraphElement;
 
 /**
  * Proxy Factory class
@@ -129,11 +130,11 @@ class Factory
      * property of this class. This is done so that the object returned by a query seemingly matches the object type
      * being queried for, while retaining its ID and other required information.
      *
-     * @param \LRezek\Arachnid\Meta\GraphElement $meta The meta for the entity object being proxied.
+     * @param GraphElement $meta The meta for the entity object being proxied.
      * @return mixed An instance of the proxy class.
      * @throws \LRezek\Arachnid\Exception If something goes wrong in file writing.
      */
-    private function createProxy(\LRezek\Arachnid\Meta\GraphElement $meta)
+    private function createProxy(GraphElement $meta)
     {
         //Get the proxy class name, as well as the regular class name
         $proxyClass = $meta->getProxyClass();

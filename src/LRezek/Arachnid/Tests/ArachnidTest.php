@@ -6,22 +6,41 @@ use LRezek\Arachnid\Arachnid;
 use LRezek\Arachnid\Tests\Entity\ClassParamTestClass;
 use LRezek\Arachnid\Tests\Entity\UserDifferentPropertyFormats;
 
-class ArachnidTest extends DatabaseTestCase
+class ArachnidTest extends TestLogger
 {
+    private $id;
+    private static $arachnid;
+
+    static function setUpBeforeClass()
+    {
+        self::$arachnid = new Arachnid(array(
+            'transport' => 'curl', // or 'stream'
+            'host' => 'localhost',
+            'port' => 7474,
+            'username' => null,
+            'password' => null,
+            'proxy_dir' => '/tmp',
+            'debug' => true, // Force proxy regeneration on each request
+            // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
+        ));
+    }
+
+    static function tearDownAfterClass()
+    {
+        self::$arachnid = null;
+    }
+
     function setUp()
     {
         //Generate a ID, so nodes can easily be found and deleted after tests
         $this->id = uniqid();
-
     }
+
     function tearDown()
     {
-        $id = $this->id;
-        $em = $this->getArachnid();
-
-        $queryString = "MATCH (n {testId:'$id'}) OPTIONAL MATCH (n)-[r]-() DELETE n,r";
-        $query = new EM_QUERY($em->getClient(), $queryString);
-        $result = $query->getResultSet();
+        $queryString = "MATCH (n {testId:'$this->id'}) OPTIONAL MATCH (n)-[r]-() DELETE n,r";
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
+        $query->getResultSet();
     }
 
     //*****************************************************
@@ -29,8 +48,6 @@ class ArachnidTest extends DatabaseTestCase
     //*****************************************************
     function testNodeFlush()
     {
-        $em = $this->getArachnid();
-
         //Make node with API
         $usr = new Entity\User;
         $usr->setFirstName('Arnold');
@@ -39,13 +56,13 @@ class ArachnidTest extends DatabaseTestCase
 
         //Flush and track the time
         $t = microtime(true);
-        $em->persist($usr);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($usr);
+        ArachnidTest::$arachnid->flush();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         //Get node with everyman
         $queryString = 'MATCH (movie:`LRezek\Arachnid\Tests\Entity\User` {firstName:"Arnold"}) RETURN movie;';
-        $query = new EM_QUERY($em->getClient(), $queryString);
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
         $result = $query->getResultSet();
 
         //Make sure there is an entry
@@ -76,17 +93,15 @@ class ArachnidTest extends DatabaseTestCase
         $rel->setFrom($usr1);
         $rel->setSince("1989");
 
-        $em = $this->getArachnid();
-
         $t = microtime(true);
-        $em->persist($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         //Get the relation with everyman
         $id = $this->id;
         $queryString = "MATCH (n {firstName:'Arnold', testId:'$id'})-[r {since:'1989'}]->(m {firstName:'Sean'}) RETURN r;";
-        $query = new EM_QUERY($em->getClient(), $queryString);
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
         $d = $query->getResultSet();
 
         //Make sure there is an entry
@@ -136,17 +151,15 @@ class ArachnidTest extends DatabaseTestCase
         $relation2->setFrom($usr2);
         $relation2->setSince("1988");
 
-        $em = $this->getArachnid();
-
         $t = microtime(true);
-        $em->persist($relation);
-        $em->persist($relation2);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($relation);
+        ArachnidTest::$arachnid->persist($relation2);
+        ArachnidTest::$arachnid->flush();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         //Get the first relation with everyman
         $queryString = "MATCH (n)-[r {since:'1989'}]->(m) RETURN r;";
-        $query = new EM_QUERY($em->getClient(), $queryString);
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
         $d = $query->getResultSet();
 
         //Make sure there is an entry
@@ -166,7 +179,7 @@ class ArachnidTest extends DatabaseTestCase
 
         //Get the second relation with everyman
         $queryString = "MATCH (n)-[r {since:'1988'}]->(m) RETURN r;";
-        $query = new EM_QUERY($em->getClient(), $queryString);
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
         $d = $query->getResultSet();
 
         //Make sure there is an entry
@@ -193,9 +206,8 @@ class ArachnidTest extends DatabaseTestCase
         $usr->setTestId($this->id);
 
         $t = microtime(true);
-        $em = $this->getArachnid();
-        $em->persist($usr);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($usr);
+        ArachnidTest::$arachnid->flush();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
     }
     function testCustomRepoRelationFlush() {
@@ -216,11 +228,9 @@ class ArachnidTest extends DatabaseTestCase
         $rel->setFrom($usr1);
         $rel->setSince("1989");
 
-        $em = $this->getArachnid();
-
         $t = microtime(true);
-        $em->persist($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
     }
@@ -228,8 +238,6 @@ class ArachnidTest extends DatabaseTestCase
     function testRelationFlushWithoutStart() {
 
         $this->setExpectedException('Exception');
-
-        $em = $this->getArachnid();
 
         $usr = new Entity\User;
         $usr->setFirstName('Arnold');
@@ -241,15 +249,13 @@ class ArachnidTest extends DatabaseTestCase
         $relation->setSince("1989");
 
         $t = microtime(true);
-        $em->persist($relation);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($relation);
+        ArachnidTest::$arachnid->flush();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
     }
     function testRelationFlushWithoutEnd() {
 
         $this->setExpectedException('Exception');
-
-        $em = $this->getArachnid();
 
         $usr = new Entity\User;
         $usr->setFirstName('Arnold');
@@ -260,8 +266,8 @@ class ArachnidTest extends DatabaseTestCase
         $relation->setFrom($usr);
         $relation->setSince("1989");
 
-        $em->persist($relation);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($relation);
+        ArachnidTest::$arachnid->flush();
     }
 
     //*****************************************************
@@ -269,7 +275,6 @@ class ArachnidTest extends DatabaseTestCase
     //*****************************************************
     function testNodeReload()
     {
-        $em = $this->getArachnid();
 
         //Make node with API
         $usr = new Entity\User;
@@ -278,11 +283,11 @@ class ArachnidTest extends DatabaseTestCase
         $usr->setTestId($this->id);
 
         //Flush it
-        $em->persist($usr);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($usr);
+        ArachnidTest::$arachnid->flush();
 
         //Reload
-        $usr = $em->reload($usr);
+        $usr = ArachnidTest::$arachnid->reload($usr);
 
         foreach(class_implements(get_class($usr)) as $key => $val)
         {
@@ -299,8 +304,6 @@ class ArachnidTest extends DatabaseTestCase
     }
     function testRelationReload()
     {
-        $em = $this->getArachnid();
-
         $usr1 = new Entity\User;
         $usr2 = new Entity\User;
         $rel = new Entity\FriendsWith();
@@ -318,13 +321,13 @@ class ArachnidTest extends DatabaseTestCase
         $rel->setSince("1989");
 
         //Flush it
-        $em->persist($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
 
         //Reload
-        $rel = $em->reload($rel);
-        $usr1 = $em->reload($usr1);
-        $usr2 = $em->reload($usr2);
+        $rel = ArachnidTest::$arachnid->reload($rel);
+        $usr1 = ArachnidTest::$arachnid->reload($usr1);
+        $usr2 = ArachnidTest::$arachnid->reload($usr2);
 
         foreach(class_implements(get_class($rel)) as $key => $val)
         {
@@ -356,23 +359,17 @@ class ArachnidTest extends DatabaseTestCase
     {
         $this->setExpectedException('Exception');
 
-        $em = $this->getArachnid();
-
         //Make node with API
         $usr = new Entity\User;
         $usr->setFirstName('Arnold');
         $usr->setLastName('Schwarzenegger');
         $usr->setTestId($this->id);
 
-        $usr = $em->reload($usr);
+        $usr = ArachnidTest::$arachnid->reload($usr);
     }
     function testReloadUnsavedRelation()
     {
         $this->setExpectedException('Exception');
-
-        $em = $this->getArachnid();
-
-        $em = $this->getArachnid();
 
         $usr1 = new Entity\User;
         $usr2 = new Entity\User;
@@ -390,7 +387,7 @@ class ArachnidTest extends DatabaseTestCase
         $rel->setFrom($usr1);
         $rel->setSince("1989");
 
-        $rel = $em->reload($rel);
+        $rel = ArachnidTest::$arachnid->reload($rel);
     }
 
     //*****************************************************
@@ -398,13 +395,13 @@ class ArachnidTest extends DatabaseTestCase
     //*****************************************************
     function testNullConfiguration(){
 
-        $em = new Arachnid(null);
-        $em->clear();
+        $a = new Arachnid(null);
+        $a->flush();
     }
     function testGarbageConfiguration() {
 
         $this->setExpectedException('Exception');
-        $em = new Arachnid(7);
+        $a = new Arachnid(7);
 
     }
 
@@ -420,25 +417,24 @@ class ArachnidTest extends DatabaseTestCase
         $usr->setTestId($this->id);
 
         //Flush and track the time
-        $em = $this->getArachnid();
-        $em->persist($usr);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($usr);
+        ArachnidTest::$arachnid->flush();
 
         //Reload the node
-        $usr = $em->reload($usr);
+        $usr = ArachnidTest::$arachnid->reload($usr);
 
         //Change the name
         $usr->setFirstName('Arnie');
 
         $t = microtime(true);
-        $em->persist($usr);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($usr);
+        ArachnidTest::$arachnid->flush();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         //Query for the node with everyman
         $id = $this->id;
         $queryString = "MATCH (movie:`LRezek\\Arachnid\\Tests\\Entity\\User` {firstName:'Arnie', testId:'$id'}) RETURN movie;";
-        $query = new EM_QUERY($em->getClient(), $queryString);
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
         $result = $query->getResultSet();
 
 
@@ -473,23 +469,22 @@ class ArachnidTest extends DatabaseTestCase
         $rel->setFrom($usr1);
         $rel->setSince("1989");
 
-        $em = $this->getArachnid();
-        $em->persist($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
 
         //Change the since
-        $rel = $em->reload($rel);
+        $rel = ArachnidTest::$arachnid->reload($rel);
         $rel->setSince('1988');
 
         $t = microtime(true);
-        $em->persist($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         //Query for relation with everyman
         $id = $this->id;
         $queryString = "MATCH (n {firstName:'Arnold', testId:'$id'})-[r {since:'1988'}]->(m {firstName:'Sean'}) RETURN r;";
-        $query = new EM_QUERY($em->getClient(), $queryString);
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
         $d = $query->getResultSet();
 
         $i = 0;
@@ -525,12 +520,11 @@ class ArachnidTest extends DatabaseTestCase
         $rel->setFrom($usr1);
         $rel->setSince("1989");
 
-        $em = $this->getArachnid();
-        $em->persist($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
 
         //Grab the relation and its start
-        $rel = $em->reload($rel);
+        $rel = ArachnidTest::$arachnid->reload($rel);
         $start = $rel->getFrom();
 
         //Make sure it's the right node
@@ -540,14 +534,14 @@ class ArachnidTest extends DatabaseTestCase
         $start->setFirstName('Arnie');
 
         $t = microtime(true);
-        $em->persist($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         //Query for the node with everyman
         $id = $this->id;
         $queryString = "MATCH (movie:`LRezek\\Arachnid\\Tests\\Entity\\User` {firstName:'Arnie', testId:'$id'}) RETURN movie;";
-        $query = new EM_QUERY($em->getClient(), $queryString);
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
         $result = $query->getResultSet();
 
         //Check the node
@@ -565,7 +559,7 @@ class ArachnidTest extends DatabaseTestCase
         //Make sure there are no arnold nodes
         $id = $this->id;
         $queryString = "MATCH (movie:`LRezek\\Arachnid\\Tests\\Entity\\User` {firstName:'Arnold', testId:'$id'}) RETURN movie;";
-        $query = new EM_QUERY($em->getClient(), $queryString);
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
         $result = $query->getResultSet();
 
         //Check the node
@@ -592,12 +586,11 @@ class ArachnidTest extends DatabaseTestCase
         $rel->setFrom($usr1);
         $rel->setSince("1989");
 
-        $em = $this->getArachnid();
-        $em->persist($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
 
         //Grab the relation and its start
-        $rel = $em->reload($rel);
+        $rel = ArachnidTest::$arachnid->reload($rel);
         $end = $rel->getTo();
 
         //Make sure it's the right node
@@ -607,14 +600,14 @@ class ArachnidTest extends DatabaseTestCase
         $end->setFirstName('Thomas Sean');
 
         $t = microtime(true);
-        $em->persist($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         //Query for the node with everyman
         $id = $this->id;
         $queryString = "MATCH (movie:`LRezek\\Arachnid\\Tests\\Entity\\User` {firstName:'Thomas Sean', testId:'$id'}) RETURN movie;";
-        $query = new EM_QUERY($em->getClient(), $queryString);
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
         $result = $query->getResultSet();
 
         //Check the node
@@ -632,7 +625,7 @@ class ArachnidTest extends DatabaseTestCase
         //Make sure there are no sean nodes
         $id = $this->id;
         $queryString = "MATCH (movie:`LRezek\\Arachnid\\Tests\\Entity\\User` {firstName:'Sean', testId:'$id'}) RETURN movie;";
-        $query = new EM_QUERY($em->getClient(), $queryString);
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
         $result = $query->getResultSet();
 
         //Check the node
@@ -668,18 +661,17 @@ class ArachnidTest extends DatabaseTestCase
         $rel->setFrom($usr1);
         $rel->setSince("1989");
 
-        $em = $this->getArachnid();
-        $em->persist($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
 
         //Grab the relation
-        $rel = $em->reload($rel);
+        $rel = ArachnidTest::$arachnid->reload($rel);
 
         //Move the start node to Michael
         $rel->setFrom($usr3);
 
-        $em->persist($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
 
     }
     function testRelationEndNodeUpdate(){
@@ -707,18 +699,17 @@ class ArachnidTest extends DatabaseTestCase
         $rel->setFrom($usr1);
         $rel->setSince("1989");
 
-        $em = $this->getArachnid();
-        $em->persist($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
 
         //Grab the relation
-        $rel = $em->reload($rel);
+        $rel = ArachnidTest::$arachnid->reload($rel);
 
         //Move the start node to Michael
         $rel->setTo($usr3);
 
-        $em->persist($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
 
     }
 
@@ -727,7 +718,6 @@ class ArachnidTest extends DatabaseTestCase
     //*****************************************************
     function testNodeRemoval()
     {
-        $em = $this->getArachnid();
         $id = $this->id;
 
         //Make node with API
@@ -737,13 +727,13 @@ class ArachnidTest extends DatabaseTestCase
         $usr->setTestId($this->id);
 
         //Flush and remember user
-        $em->persist($usr);
-        $em->flush();
-        $usr = $em->reload($usr);
+        ArachnidTest::$arachnid->persist($usr);
+        ArachnidTest::$arachnid->flush();
+        $usr = ArachnidTest::$arachnid->reload($usr);
 
         //Make sure it's there first
         $queryString = "MATCH (movie:`LRezek\\Arachnid\\Tests\\Entity\\User` {firstName:'Arnold', testId:'$id'}) RETURN movie;";
-        $query = new EM_QUERY($em->getClient(), $queryString);
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
         $result = $query->getResultSet();
 
         //Check the first name
@@ -757,13 +747,13 @@ class ArachnidTest extends DatabaseTestCase
 
         //Flush and track the time
         $t = microtime(true);
-        $em->remove($usr);
-        $em->flush();
+        ArachnidTest::$arachnid->remove($usr);
+        ArachnidTest::$arachnid->flush();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         //Get node with everyman
         $queryString = "MATCH (movie:`LRezek\\Arachnid\\Tests\\Entity\\User` {firstName:'Arnold', testId:'$id'}) RETURN movie;";
-        $query = new EM_QUERY($em->getClient(), $queryString);
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
         $result = $query->getResultSet();
 
         //Check the first name
@@ -791,16 +781,15 @@ class ArachnidTest extends DatabaseTestCase
         $rel->setFrom($usr1);
         $rel->setSince("1989");
 
-        $em = $this->getArachnid();
-        $em->persist($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
 
-        $usr = $em->reload($usr1);
+        $usr = ArachnidTest::$arachnid->reload($usr1);
 
         //Make sure the node is there
         $id = $this->id;
         $queryString = "MATCH (n {firstName:'Arnold', testId:'$id'})-[r {since:'1989'}]->(m {firstName:'Sean'}) RETURN n;";
-        $query = new EM_QUERY($em->getClient(), $queryString);
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
         $d = $query->getResultSet();
 
         $i = 0;
@@ -820,14 +809,14 @@ class ArachnidTest extends DatabaseTestCase
 
         //Delete it
         $t = microtime(true);
-        $em->remove($usr);
-        $em->flush();
+        ArachnidTest::$arachnid->remove($usr);
+        ArachnidTest::$arachnid->flush();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
 
         //Make sure the node was removed
         $queryString = "MATCH (n {firstName:'Arnold', testId:'$id'})-[r {since:'1989'}]->(m {firstName:'Sean'}) RETURN n;";
-        $query = new EM_QUERY($em->getClient(), $queryString);
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
         $d = $query->getResultSet();
 
         foreach($d as $row)
@@ -854,14 +843,13 @@ class ArachnidTest extends DatabaseTestCase
         $rel->setFrom($usr1);
         $rel->setSince("1989");
 
-        $em = $this->getArachnid();
-        $em->persist($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
 
         //Get the relation with everyman
         $id = $this->id;
         $queryString = "MATCH (n {firstName:'Arnold', testId:'$id'})-[r {since:'1989'}]->(m {firstName:'Sean'}) RETURN r;";
-        $query = new EM_QUERY($em->getClient(), $queryString);
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
         $d = $query->getResultSet();
 
         //Check the property
@@ -878,18 +866,18 @@ class ArachnidTest extends DatabaseTestCase
         $this->assertEquals(1, $i);
 
         //Get relation
-        $rel = $em->reload($rel);
+        $rel = ArachnidTest::$arachnid->reload($rel);
 
         //Remove it
         $t = microtime(true);
-        $em->remove($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->remove($rel);
+        ArachnidTest::$arachnid->flush();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         //Query for it again
         $id = $this->id;
         $queryString = "MATCH (n {firstName:'Arnold', testId:'$id'})-[r {since:'1989'}]->(m {firstName:'Sean'}) RETURN r;";
-        $query = new EM_QUERY($em->getClient(), $queryString);
+        $query = new EM_QUERY(ArachnidTest::$arachnid->getClient(), $queryString);
         $d = $query->getResultSet();
 
 
@@ -922,21 +910,19 @@ class ArachnidTest extends DatabaseTestCase
         $rel->set_from($usr1);
         $rel->set_since("100");
 
-        $em = $this->getArachnid();
-
         $t = microtime(true);
-        $em->persist($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         //Get the nodes
-        $usr1 = $em->reload($usr1);
-        $usr2 = $em->reload($usr2);
+        $usr1 = ArachnidTest::$arachnid->reload($usr1);
+        $usr2 = ArachnidTest::$arachnid->reload($usr2);
 
         //Get the relation a couple different ways
-        $rel1 = $em->get_repository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWithUnderscoreNotation')->find_one_by_from($usr1);
-        $rel2 = $em->get_repository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWithUnderscoreNotation')->find_one_by_to($usr2);
-        $rel3 = $em->get_repository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWithUnderscoreNotation')->find_one_by_since("100");
+        $rel1 = ArachnidTest::$arachnid->get_repository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWithUnderscoreNotation')->find_one_by_from($usr1);
+        $rel2 = ArachnidTest::$arachnid->get_repository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWithUnderscoreNotation')->find_one_by_to($usr2);
+        $rel3 = ArachnidTest::$arachnid->get_repository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWithUnderscoreNotation')->find_one_by_since("100");
 
         //Make sure there is an entry
         $this->assertNotNull($rel1);
@@ -961,15 +947,15 @@ class ArachnidTest extends DatabaseTestCase
         $this->assertEquals("two user", $end->get_last_name());
 
         //Delete the relationship
-        $em->remove($usr1);
-        $em->remove($usr2);
-        $em->remove($rel);
-        $em->flush();
+        ArachnidTest::$arachnid->remove($usr1);
+        ArachnidTest::$arachnid->remove($usr2);
+        ArachnidTest::$arachnid->remove($rel);
+        ArachnidTest::$arachnid->flush();
 
         //Make sure the nodes and relationship are gone
-        $rel = $em->get_repository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWithUnderscoreNotation')->find_one_by_since("100");
-        $usr1 = $em->get_repository('LRezek\\Arachnid\\Tests\\Entity\\UserUnderscoreNotation')->find_one_by_first_name("user one");
-        $usr2 = $em->get_repository('LRezek\\Arachnid\\Tests\\Entity\\UserUnderscoreNotation')->find_one_by_first_name("user two");
+        $rel = ArachnidTest::$arachnid->get_repository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWithUnderscoreNotation')->find_one_by_since("100");
+        $usr1 = ArachnidTest::$arachnid->get_repository('LRezek\\Arachnid\\Tests\\Entity\\UserUnderscoreNotation')->find_one_by_first_name("user one");
+        $usr2 = ArachnidTest::$arachnid->get_repository('LRezek\\Arachnid\\Tests\\Entity\\UserUnderscoreNotation')->find_one_by_first_name("user two");
 
         $this->assertNull($rel);
         $this->assertNull($usr1);
@@ -1005,10 +991,9 @@ class ArachnidTest extends DatabaseTestCase
         $user->setClass($obj);
 
         //Flush
-        $arachnid = $this->getArachnid();
-        $arachnid->persist($user);
-        $arachnid->flush();
-        $user = $arachnid->reload($user);
+        ArachnidTest::$arachnid->persist($user);
+        ArachnidTest::$arachnid->flush();
+        $user = ArachnidTest::$arachnid->reload($user);
 
         //Do assertions
         $this->assertEquals(5, $user->getScalar());
@@ -1020,6 +1005,40 @@ class ArachnidTest extends DatabaseTestCase
 
     }
 
+    //*****************************************************
+    //***** CLEARING TESTS ********************************
+    //*****************************************************
+    function testClearCache()
+    {
+        $ref = new \ReflectionClass('LRezek\\Arachnid\\Arachnid');
+        $ln = $ref->getProperty('nodeProxyCache');
+        $lr = $ref->getProperty('relationProxyCache');
+        $n = $ref->getProperty('everymanNodeCache');
+        $r = $ref->getProperty('everymanRelationCache');
+
+        $ln->setAccessible(true);
+        $lr->setAccessible(true);
+        $n->setAccessible(true);
+        $r->setAccessible(true);
+
+        $ln->setValue(self::$arachnid, array(1));
+        $lr->setValue(self::$arachnid, array(1));
+        $n->setValue(self::$arachnid, array(1));
+        $r->setValue(self::$arachnid, array(1));
+
+        //Do the clear
+        self::$arachnid->clear_cache();
+
+        $this->assertEquals(0, count($ln->getValue(self::$arachnid)));
+        $this->assertEquals(0, count($lr->getValue(self::$arachnid)));
+        $this->assertEquals(0, count($n->getValue(self::$arachnid)));
+        $this->assertEquals(0, count($r->getValue(self::$arachnid)));
+
+        $ln->setAccessible(false);
+        $lr->setAccessible(false);
+        $n->setAccessible(false);
+        $r->setAccessible(false);
+    }
 
 
     //*****************************************************
@@ -1029,8 +1048,6 @@ class ArachnidTest extends DatabaseTestCase
 //    function testHugeFlush()
 //    {
 //        $numRelations = 1000;
-//
-//        $em = $this->getEntityManager();
 //
 //        $t = microtime(true);
 //
@@ -1047,10 +1064,10 @@ class ArachnidTest extends DatabaseTestCase
 //            $relation->setFrom($mov2);
 //            $relation->setSince("1993");
 //
-//            $em->persist($relation);
+//            ArachnidTest::$arachnid->persist($relation);
 //        }
 //
-//        $em->flush();
+//        ArachnidTest::$arachnid->flush();
 //
 //        printf($this->getMask(), __FUNCTION__, (microtime(true) - $t));
 //

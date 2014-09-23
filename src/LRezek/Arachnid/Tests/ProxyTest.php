@@ -8,19 +8,11 @@ use Everyman\Neo4j\Cypher\Query as EM_QUERY;
 class ProxyTest extends \PHPUnit_Framework_TestCase
 {
     private $id;
+    private static $arachnid;
 
-    function setUp()
+    static function setUpBeforeClass()
     {
-        //Generate a ID, so nodes can easily be found and deleted after tests
-        $this->id = uniqid();
-
-    }
-
-    function tearDown()
-    {
-        $id = $this->id;
-
-        $em = $arachnid = new Arachnid(array(
+        self::$arachnid = new Arachnid(array(
             'transport' => 'curl', // or 'stream'
             'host' => 'localhost',
             'port' => 7474,
@@ -30,24 +22,24 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
             'debug' => true, // Force proxy regeneration on each request
             // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
         ));
-
-        $queryString = "MATCH (n {testId:'$id'}) OPTIONAL MATCH (n)-[r]-() DELETE n,r";
-        $query = new EM_QUERY($em->getClient(), $queryString);
-        $result = $query->getResultSet();
     }
 
-    protected function getArachnid($dir = '/tmp')
+    static function tearDownAfterClass()
     {
-        return new Arachnid(array(
-            'transport' => 'curl', // or 'stream'
-            'host' => 'localhost',
-            'port' => 7474,
-            'username' => null,
-            'password' => null,
-            'proxy_dir' => $dir,
-            'debug' => true, // Force proxy regeneration on each request
-            // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
-        ));
+        self::$arachnid = null;
+    }
+
+    function setUp()
+    {
+        //Generate a ID, so nodes can easily be found and deleted after tests
+        $this->id = uniqid();
+    }
+
+    function tearDown()
+    {
+        $queryString = "MATCH (n {testId:'$this->id'}) OPTIONAL MATCH (n)-[r]-() DELETE n,r";
+        $query = new EM_QUERY(self::$arachnid->getClient(), $queryString);
+        $query->getResultSet();
     }
 
     function testUncreatableDirectory()
@@ -55,16 +47,24 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException('Exception', 'Proxy Dir is not writable.');
 
         //Create a new arachnid instance with an uncreatable directory proxy path
-        $a = $this->getArachnid('/<>');
+        $a = new Arachnid(array(
+            'transport' => 'curl', // or 'stream'
+            'host' => 'localhost',
+            'port' => 7474,
+            'username' => null,
+            'password' => null,
+            'proxy_dir' => '/<>',
+            'debug' => true, // Force proxy regeneration on each request
+            // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
+        ));
 
         //Do a persist and reload (to generate a proxy)
-        $u1 = new \LRezek\Arachnid\Tests\Entity\User();
+        $u1 = new \LRezek\Arachnid\Tests\Entity\User2();
         $u1->setFirstName('Lukas');
         $u1->setTestId($this->id);
         $a->persist($u1);
         $a->flush();
         $a->reload($u1);
-
     }
 
     function testUnwriteableDirectory()
@@ -72,10 +72,19 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException('Exception', 'Proxy Dir is not writable.');
 
         //Create a new arachnid instance with an unwritable proxy path
-        $a = $this->getArachnid('/etc');
+        $a = new Arachnid(array(
+            'transport' => 'curl', // or 'stream'
+            'host' => 'localhost',
+            'port' => 7474,
+            'username' => null,
+            'password' => null,
+            'proxy_dir' => '/etc',
+            'debug' => true, // Force proxy regeneration on each request
+            // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
+        ));
 
         //Do a persist and reload (to generate a proxy)
-        $u1 = new \LRezek\Arachnid\Tests\Entity\User();
+        $u1 = new \LRezek\Arachnid\Tests\Entity\User3();
         $u1->setFirstName('Lukas');
         $u1->setTestId($this->id);
         $a->persist($u1);
@@ -86,8 +95,6 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
 
     function testOptionalAndReferenceParameters()
     {
-        $a = $this->getArachnid();
-
         $rel = new RelationDifferentMethodTypes;
         $u1 = new \LRezek\Arachnid\Tests\Entity\User();
         $u2 = new \LRezek\Arachnid\Tests\Entity\User();
@@ -99,12 +106,12 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
         $rel->setFrom($u1);
         $rel->setTo($u2);
 
-        $a->persist($rel);
-        $a->flush();
+        self::$arachnid->persist($rel);
+        self::$arachnid->flush();
 
-        $u1_proxy = $a->reload($u1);
-        $u2_proxy = $a->reload($u2);
-        $rel_proxy = $a->reload($rel);
+        $u1_proxy = self::$arachnid->reload($u1);
+        $u2_proxy = self::$arachnid->reload($u2);
+        $rel_proxy = self::$arachnid->reload($rel);
 
         //I now have 3 proxies.
 
@@ -129,8 +136,6 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
 
     function testTypedAndArrayParameters()
     {
-        $a = $this->getArachnid();
-
         $rel = new RelationDifferentMethodTypes;
         $u1 = new \LRezek\Arachnid\Tests\Entity\User();
         $u2 = new \LRezek\Arachnid\Tests\Entity\User();
@@ -142,12 +147,12 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
         $rel->set_from($u1);
         $rel->set_to(array($u2, 3));
 
-        $a->persist($rel);
-        $a->flush();
+        self::$arachnid->persist($rel);
+        self::$arachnid->flush();
 
-        $u1_proxy = $a->reload($u1);
-        $u2_proxy = $a->reload($u2);
-        $rel_proxy = $a->reload($rel);
+        $u1_proxy = self::$arachnid->reload($u1);
+        $u2_proxy = self::$arachnid->reload($u2);
+        $rel_proxy = self::$arachnid->reload($rel);
 
         //I now have 3 proxies.
 
@@ -178,10 +183,7 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
         {
             //All good
         }
-
     }
-
-
 }
 
 ?> 

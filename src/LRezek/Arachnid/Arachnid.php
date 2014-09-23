@@ -13,8 +13,8 @@ namespace LRezek\Arachnid;
 use Everyman\Neo4j\Cypher\Query as InternalCypherQuery;
 use Everyman\Neo4j\Index\NodeIndex;
 use Everyman\Neo4j\Index\RelationshipIndex;
-use Everyman\Neo4j\Node;
-use LRezek\Arachnid\Meta\Relation;
+use LRezek\Arachnid\Meta\Node as NodeMeta;
+use \Everyman\Neo4j\Exception as EverymanException;
 
 /**
  * Handles communication with the database server, and keeps track of the various entities in the system.
@@ -61,20 +61,20 @@ class Arachnid
     /** @var array List of relations by end node. */
     private $endNodeRelations = array();
 
-    /** @var array List of Everyman node objects. */
-    private $nodes = array();
+    /** @var array Stores everyman nodes form an entity by entity hash (so you can reload after flushing). */
+    private $everymanNodeCache = array();
 
-    /** @var array List of Everyman relation objects. */
-    private $relations = array();
+    /** @var array Stores everyman relations from an entity by entity hash (so you can reload after flushing). */
+    private $everymanRelationCache = array();
 
     /** @var array List of repositories for querying. */
     private $repositories = array();
 
-    /** @var array Storage for loaded node entities. */
-    private $loadedNodes = array();
+    /** @var array Stores loaded proxy nodes by everyman id. */
+    private $nodeProxyCache = array();
 
-    /** @var array Storage for loaded relation entities. */
-    private $loadedRelations = array();
+    /** @var array Stores loaded proxy relations by everyman id. */
+    private $relationProxyCache = array();
 
     /** @var callable Date generation function to use. */
     private $dateGenerator;
@@ -145,7 +145,7 @@ class Arachnid
         $hash = $this->getHash($entity);
 
         //Store a node entity
-        if($meta instanceof \LRezek\Arachnid\Meta\Node)
+        if($meta instanceof NodeMeta)
         {
             //Don't persist it again if it's already been done
             if(!array_key_exists($hash, $this->nodeEntities))
@@ -215,7 +215,7 @@ class Arachnid
         //Get a hash of this entity
         $hash = $this->getHash($entity);
 
-        if($meta instanceof \LRezek\Arachnid\Meta\Node)
+        if($meta instanceof NodeMeta)
         {
             $this->nodeEntitiesToRemove[$hash] = $entity;
         }
@@ -237,27 +237,31 @@ class Arachnid
      */
     public function flush()
     {
+        try
+        {
+            //Writes all entities to the DB
+            $this->writeEntities();
 
-        //Writes all entities to the DB
-        $this->writeEntities();
+            //Write node labels
+            $this->writeLabels();
 
-        //Write node labels
-        $this->writeLabels();
+            //Write indexes
+            $this->writeIndexes();
 
-        //Write indexes
-        $this->writeIndexes();
+            //Delete removed entities
+            $this->removeEntities();
 
-        //Delete removed entities
-        $this->removeEntities();
+            //Clear entity lists
+            $this->clearEntities();
+        }
+        catch(Exception $e)
+        {
+            //Flush failed, clear the queued up entities
+            $this->clearEntities();
 
-        $this->nodeEntities = array();
-        $this->relationEntities = array();
-
-        $this->nodeEntitiesToRemove = array();
-        $this->relationEntitiesToRemove = array();
-
-        $this->startNodeRelations = array();
-        $this->endNodeRelations = array();
+            //Throw the error back to the user
+            throw $e;
+        }
     }
 
     /**
@@ -352,12 +356,11 @@ class Arachnid
         //Loop through node entities
         foreach ($this->nodeEntities as $node)
         {
-            //Get entities hash and meta info
+            //Get entities hash
             $hash = $this->getHash($node);
-            $meta = $this->getMeta($node);
 
             //Create the node from the entity and save it to the database
-            $this->nodes[$hash] = $this->createNode($node)->save();
+            $this->everymanNodeCache[$hash] = $this->createNode($node)->save();
 
             //Make relations this node starts on go to the node
             if(array_key_exists($hash, $this->startNodeRelations))
@@ -372,7 +375,7 @@ class Arachnid
 
                     //Move the start node to an everyman node
                     $prop = $relMeta->getStart();
-                    $prop->setValue($this->relationEntities[$relHash], $this->nodes[$hash]);
+                    $prop->setValue($this->relationEntities[$relHash], $this->everymanNodeCache[$hash]);
                 }
             }
 
@@ -390,12 +393,12 @@ class Arachnid
 
                     //Move the end node to an everyman node
                     $prop = $relMeta->getEnd();
-                    $prop->setValue($this->relationEntities[$relHash], $this->nodes[$hash]);
+                    $prop->setValue($this->relationEntities[$relHash], $this->everymanNodeCache[$hash]);
                 }
             }
 
             //Trigger node creation event (if it's defined...)
-            $this->triggerEvent(self::RELATION_CREATE, $node, $this->nodes[$hash]);
+            $this->triggerEvent(self::RELATION_CREATE, $node, $this->everymanNodeCache[$hash]);
         }
 
 
@@ -406,10 +409,10 @@ class Arachnid
             $hash = $this->getHash($relation);
 
             //Create and save the relationship
-            $this->relations[$hash] = $this->createRelation($relation)->save();
+            $this->everymanRelationCache[$hash] = $this->createRelation($relation)->save();
 
             //Trigger relation creation event (if it's defined...)
-            $this->triggerEvent(self::RELATION_CREATE, $relation, $this->relations[$hash]);
+            $this->triggerEvent(self::RELATION_CREATE, $relation, $this->everymanRelationCache[$hash]);
         }
 
         //Commit the database batch
@@ -506,7 +509,6 @@ class Arachnid
                 //Check if the requested start node is different than the present one.
                 if($nid != $relation->getStartNode()->getId())
                 {
-                    //$relation->setStartNode($start);
                     throw new Exception("You can't change the start node of a saved relation.");
                 }
 
@@ -521,7 +523,6 @@ class Arachnid
                 //If the attached nodes ID is different than the id the relation currently points to
                 if($nid != $relation->getEndNode()->getId())
                 {
-                    //$relation->setEndNode($end);
                     throw new Exception("You can't change the end node of a saved relation.");
                 }
 
@@ -589,7 +590,7 @@ class Arachnid
 
             //Add the class name as a label
             $label = $this->client->makeLabel($meta->getName());
-            $this->nodes[$this->getHash($node)]->addLabels(array($label));
+            $this->everymanNodeCache[$this->getHash($node)]->addLabels(array($label));
 
         }
 
@@ -608,7 +609,7 @@ class Arachnid
         $meta = $this->metaRepository->fromClass($className);
 
         //Create a node index
-        if($meta instanceof \LRezek\Arachnid\Meta\Node)
+        if($meta instanceof NodeMeta)
         {
             return new NodeIndex($this->client, $className);
         }
@@ -637,7 +638,7 @@ class Arachnid
         $index = $this->getRepository($class)->getIndex();
 
         //Get the loaded node if it's a node
-        if($meta instanceof \LRezek\Arachnid\Meta\Node)
+        if($meta instanceof NodeMeta)
         {
             $en = $this->getEverymanNode($entity);
         }
@@ -704,7 +705,7 @@ class Arachnid
      */
     private function getEverymanNode($entity)
     {
-        return $this->nodes[$this->getHash($entity)];
+        return $this->everymanNodeCache[$this->getHash($entity)];
     }
 
     /**
@@ -715,7 +716,7 @@ class Arachnid
      */
     private function getEverymanRelation($entity)
     {
-        return $this->relations[$this->getHash($entity)];
+        return $this->everymanRelationCache[$this->getHash($entity)];
     }
 
     /**
@@ -778,7 +779,7 @@ class Arachnid
     public function loadNode($node)
     {
         //If the node isn't already loaded
-        if(!isset($this->loadedNodes[$node->getId()]))
+        if(!isset($this->nodeProxyCache[$node->getId()]))
         {
             //Get the nodes class name (from label)
             $labels = $this->client->getLabels($node);
@@ -787,11 +788,11 @@ class Arachnid
             //Create a proxy entity
             $entity = $this->proxyFactory->fromNode($node, $this->metaRepository, $class);
 
-            $this->loadedNodes[$node->getId()] = $entity;
-            $this->nodes[$this->getHash($entity)] = $node;
+            $this->nodeProxyCache[$node->getId()] = $entity;
+            $this->everymanNodeCache[$this->getHash($entity)] = $node;
         }
 
-        return $this->loadedNodes[$node->getId()];
+        return $this->nodeProxyCache[$node->getId()];
     }
 
     /**
@@ -805,7 +806,7 @@ class Arachnid
     public function loadRelation($relation)
     {
         //If the node isn't already loaded
-        if(!isset($this->loadedRelations[$relation->getId()]))
+        if(!isset($this->relationProxyCache[$relation->getId()]))
         {
             //Create a proxy entity
             $em = $this;
@@ -813,11 +814,11 @@ class Arachnid
                 return $em->loadNode($node);
             });
 
-            $this->loadedRelations[$relation->getId()] = $entity;
-            $this->relations[$this->getHash($entity)] = $relation;
+            $this->relationProxyCache[$relation->getId()] = $entity;
+            $this->everymanRelationCache[$this->getHash($entity)] = $relation;
         }
 
-        return $this->loadedRelations[$relation->getId()];
+        return $this->relationProxyCache[$relation->getId()];
     }
 
     /**
@@ -838,12 +839,12 @@ class Arachnid
         //Get the primary key
         $id = $meta->getPrimaryKey()->getValue($entity);
 
-        if($meta instanceof \LRezek\Arachnid\Meta\Node)
+        if($meta instanceof NodeMeta)
         {
-            //Is cached
-            if(isset($this->nodes[$hash]))
+            //Everyman Node is cached, just load it
+            if(isset($this->everymanNodeCache[$hash]))
             {
-                return $this->loadNode($this->nodes[$hash]);
+                return $this->loadNode($this->everymanNodeCache[$hash]);
             }
 
             //Not in the cache, but has an id, get the node and load it.
@@ -861,9 +862,9 @@ class Arachnid
 
         else
         {
-            if(isset($this->relations[$hash]))
+            if(isset($this->everymanRelationCache[$hash]))
             {
-                return $this->loadRelation($this->relations[$hash]);
+                return $this->loadRelation($this->everymanRelationCache[$hash]);
             }
 
             //Not in the cache, but has an id, get the node and load it.
@@ -881,12 +882,40 @@ class Arachnid
     }
 
     /**
-     * Clear the entity cache
+     * Clear the loaded entity cache.
      */
-    public function clear()
+    public function clearCache()
     {
-        $this->loadedNodes = array();
-        $this->loadedRelations = array();
+        //Clear node by id lists
+        $this->nodeProxyCache = array();
+        $this->relationProxyCache = array();
+
+        //And node by hash lists
+        $this->everymanNodeCache = array();
+        $this->everymanRelationCache = array();
+    }
+
+    /**
+     * Clear the loaded entity cache.
+     */
+    public function clear_cache()
+    {
+        $this->clearCache();
+    }
+
+    /**
+     * Clears entities in the save/remove lists.
+     */
+    private function clearEntities()
+    {
+        $this->nodeEntities = array();
+        $this->relationEntities = array();
+
+        $this->nodeEntitiesToRemove = array();
+        $this->relationEntitiesToRemove = array();
+
+        $this->startNodeRelations = array();
+        $this->endNodeRelations = array();
     }
 
     /**
@@ -979,7 +1008,7 @@ class Arachnid
             return $rs;
         }
 
-        catch (\Everyman\Neo4j\Exception $e)
+        catch (EverymanException $e)
         {
             $message = $e->getMessage();
             preg_match('/\[message\] => (.*)/', $message, $parts);
@@ -990,7 +1019,7 @@ class Arachnid
     /**
      * Creates a hash of the given object.
      *
-     * @param $object Object to hash.
+     * @param object $object Object to hash.
      * @return string Hash.
      */
     public function getHash($object)
@@ -1001,7 +1030,7 @@ class Arachnid
     /**
      * Gets meta information for an entity.
      *
-     * @param Node|Relation $entity The entity.
+     * @param object $entity The entity.
      * @return mixed Meta information from meta repository.
      */
     private function getMeta($entity)

@@ -2,27 +2,8 @@
 
 namespace LRezek\Arachnid\Tests;
 
-use LRezek\Arachnid\Arachnid;
-
-abstract class DatabaseTestCase extends \PHPUnit_Framework_TestCase
+abstract class TestLogger extends \PHPUnit_Framework_TestCase
 {
-    //Test id
-    public $id;
-
-    protected function getArachnid()
-    {
-
-        return new Arachnid(array(
-             'transport' => 'curl', // or 'stream'
-             'host' => 'localhost',
-             'port' => 7474,
-             'username' => null,
-             'password' => null,
-             'proxy_dir' => '/tmp',
-             'debug' => true, // Force proxy regeneration on each request
-            // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
-        ));
-    }
 
     protected static function printTime($function, $time)
     {

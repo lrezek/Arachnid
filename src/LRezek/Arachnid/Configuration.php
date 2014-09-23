@@ -113,6 +113,7 @@ class Configuration
 
     /**
      * Creates a everyman client based on the configuration parameters.
+     *
      * @return Client
      */
     function getClient()
