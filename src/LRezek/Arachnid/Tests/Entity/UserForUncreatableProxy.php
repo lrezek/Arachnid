@@ -6,7 +6,7 @@ use LRezek\Arachnid\Annotation as OGM;
 /**
  * @OGM\Node
  */
-class User2
+class UserForUncreatableProxy
 {
     /**
      * @OGM\Auto

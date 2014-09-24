@@ -5,21 +5,25 @@ use Everyman\Neo4j\Cypher\Query as EM_QUERY;
 use LRezek\Arachnid\Arachnid;
 use LRezek\Arachnid\Tests\Entity\FriendsWith;
 use LRezek\Arachnid\Tests\Entity\User;
+use org\bovigo\vfs\vfsStream;
 
 class RepositoryTest extends TestLogger
 {
     private $id;
     private static $arachnid;
+    private static $root;
 
     static function setUpBeforeClass()
     {
+        self::$root = vfsStream::setup('tmp');
+
         self::$arachnid = new Arachnid(array(
             'transport' => 'curl', // or 'stream'
             'host' => 'localhost',
             'port' => 7474,
             'username' => null,
             'password' => null,
-            'proxy_dir' => '/tmp',
+            'proxy_dir' => vfsStream::url('tmp'),
             'debug' => true, // Force proxy regeneration on each request
             // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
         ));

@@ -1,24 +1,32 @@
 <?php
 
 use LRezek\Arachnid\Arachnid;
+use LRezek\Arachnid\Exception;
+use LRezek\Arachnid\Tests\Entity\Person;
 use LRezek\Arachnid\Tests\Entity\RelationDifferentMethodTypes;
 use Everyman\Neo4j\Cypher\Query as EM_QUERY;
-
+use LRezek\Arachnid\Tests\Entity\User;
+use LRezek\Arachnid\Tests\Entity\UserForUncreatableProxy;
+use org\bovigo\vfs\vfsStream;
+use org\bovigo\vfs\vfsStreamWrapper;
 
 class ProxyTest extends \PHPUnit_Framework_TestCase
 {
     private $id;
     private static $arachnid;
+    private static $root;
 
     static function setUpBeforeClass()
     {
+        self::$root = vfsStream::setup('tmp');
+
         self::$arachnid = new Arachnid(array(
             'transport' => 'curl', // or 'stream'
             'host' => 'localhost',
             'port' => 7474,
             'username' => null,
             'password' => null,
-            'proxy_dir' => '/tmp',
+            'proxy_dir' => vfsStream::url('tmp'),
             'debug' => true, // Force proxy regeneration on each request
             // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
         ));
@@ -46,6 +54,9 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException('Exception', 'Proxy Dir is not writable.');
 
+        //Make folder you can't create a subdirectory in
+        vfsStream::newDirectory('noCreate', 0000)->at(vfsStreamWrapper::getRoot());
+
         //Create a new arachnid instance with an uncreatable directory proxy path
         $a = new Arachnid(array(
             'transport' => 'curl', // or 'stream'
@@ -53,13 +64,13 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
             'port' => 7474,
             'username' => null,
             'password' => null,
-            'proxy_dir' => '/<>',
+            'proxy_dir' => vfsStream::url('tmp/noCreate').'/new',
             'debug' => true, // Force proxy regeneration on each request
             // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
         ));
 
         //Do a persist and reload (to generate a proxy)
-        $u1 = new \LRezek\Arachnid\Tests\Entity\User2();
+        $u1 = new UserForUncreatableProxy();
         $u1->setFirstName('Lukas');
         $u1->setTestId($this->id);
         $a->persist($u1);
@@ -71,6 +82,9 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException('Exception', 'Proxy Dir is not writable.');
 
+        //Make a directory you can't write into
+        vfsStream::newDirectory('noWrite', 0000)->at(vfsStreamWrapper::getRoot());
+
         //Create a new arachnid instance with an unwritable proxy path
         $a = new Arachnid(array(
             'transport' => 'curl', // or 'stream'
@@ -78,13 +92,13 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
             'port' => 7474,
             'username' => null,
             'password' => null,
-            'proxy_dir' => '/etc',
+            'proxy_dir' => vfsStream::url('tmp/noWrite'),
             'debug' => true, // Force proxy regeneration on each request
             // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
         ));
 
         //Do a persist and reload (to generate a proxy)
-        $u1 = new \LRezek\Arachnid\Tests\Entity\User3();
+        $u1 = new UserForUncreatableProxy();
         $u1->setFirstName('Lukas');
         $u1->setTestId($this->id);
         $a->persist($u1);
@@ -93,11 +107,40 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
 
     }
 
+    function testProxyDirectoryCreate()
+    {
+        //Make a directory you can write into
+        vfsStream::newDirectory('tmp/write', 0775)->at(vfsStreamWrapper::getRoot());
+
+        //Create a new arachnid instance with a proxy path inside the new directory
+        $a = new Arachnid(array(
+            'transport' => 'curl', // or 'stream'
+            'host' => 'localhost',
+            'port' => 7474,
+            'username' => null,
+            'password' => null,
+            'proxy_dir' => vfsStream::url('tmp/write').'/new',
+            'debug' => true, // Force proxy regeneration on each request
+            // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
+        ));
+
+        //Do a persist and reload (to generate a proxy)
+        $u1 = new UserForUncreatableProxy();
+        $u1->setFirstName('Lukas');
+        $u1->setTestId($this->id);
+        $a->persist($u1);
+        $a->flush();
+        $a->reload($u1);
+
+        //Make sure the folder was created
+        $this->assertFileExists(vfsStream::url('tmp/write').'/new');
+    }
+
     function testOptionalAndReferenceParameters()
     {
         $rel = new RelationDifferentMethodTypes;
-        $u1 = new \LRezek\Arachnid\Tests\Entity\User();
-        $u2 = new \LRezek\Arachnid\Tests\Entity\User();
+        $u1 = new User();
+        $u2 = new User();
         $u1->setFirstName('Lukas');
         $u1->setTestId($this->id);
         $u2->setFirstName('Bruce');
@@ -127,7 +170,7 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(2, $rel_proxy->getExtra());
 
         //Pass a new node to the by reference end
-        $u3 = new \LRezek\Arachnid\Tests\Entity\User();
+        $u3 = new User();
         $u3->setFirstName('test');
         $rel_proxy->setTo($u3);
         $this->assertEquals('Lukas', $u3->getFirstName());
@@ -137,8 +180,8 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
     function testTypedAndArrayParameters()
     {
         $rel = new RelationDifferentMethodTypes;
-        $u1 = new \LRezek\Arachnid\Tests\Entity\User();
-        $u2 = new \LRezek\Arachnid\Tests\Entity\User();
+        $u1 = new User();
+        $u2 = new User();
         $u1->setFirstName('Lukas');
         $u1->setTestId($this->id);
         $u2->setFirstName('Bruce');
@@ -162,15 +205,16 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(3, $rel_proxy->getExtra());
 
         //Pass an unmatching node to the start
-        $person = new \LRezek\Arachnid\Tests\Entity\Person();
+        $person = new Person();
         try
         {
             $rel_proxy->set_from($person);
             $this->fail();
         }
-        catch(Exception $e)
+        catch(\Exception $e)
         {
-            //All good
+            //Not an exception we threw, All good
+            $this->assertFalse($e instanceof Exception);
         }
 
         //Pass a non-array value to the proxy
@@ -179,9 +223,10 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
             $rel_proxy->set_to($u2);
             $this->fail();
         }
-        catch(Exception $e)
+        catch(\Exception $e)
         {
-            //All good
+            //Not an exception we threw, All good
+            $this->assertFalse($e instanceof Exception);
         }
     }
 }

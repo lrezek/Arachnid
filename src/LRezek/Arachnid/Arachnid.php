@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains the EntityManager class.
+ * Contains the Arachnid class.
  *
  * @author Lukas Rezek <lukas@miratronix.com>
  * @license MIT
@@ -19,7 +19,7 @@ use \Everyman\Neo4j\Exception as EverymanException;
 /**
  * Handles communication with the database server, and keeps track of the various entities in the system.
  *
- * The entity manager is the class that controls everything in this library. It deals with all the required database calls,
+ * Arachnid is the class that controls everything in this library. It deals with all the required database calls,
  * as well as entity management. In order to use this library, you must create an instance of this class with the correct
  * configuration and use the available methods for database access.
  *
@@ -883,6 +883,8 @@ class Arachnid
 
     /**
      * Clear the loaded entity cache.
+     *
+     * @api
      */
     public function clearCache()
     {
@@ -897,6 +899,8 @@ class Arachnid
 
     /**
      * Clear the loaded entity cache.
+     *
+     * @api
      */
     public function clear_cache()
     {
@@ -943,7 +947,7 @@ class Arachnid
     }
 
     /**
-     * Triggers an event held in the everntHandlers array.
+     * Triggers an event held in the evertHandlers array.
      *
      * @param string $eventName Name of the event.
      * @param array $data Parameters to pass to the event handler.
