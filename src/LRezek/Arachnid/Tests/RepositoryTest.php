@@ -6,6 +6,7 @@ use LRezek\Arachnid\Arachnid;
 use LRezek\Arachnid\Tests\Entity\FriendsWith;
 use LRezek\Arachnid\Tests\Entity\User;
 use org\bovigo\vfs\vfsStream;
+use LRezek\Arachnid\Exception;
 
 class RepositoryTest extends TestLogger
 {
@@ -135,6 +136,13 @@ class RepositoryTest extends TestLogger
         $repo2 = self::$arachnid->get_repository('LRezek\\Arachnid\\Tests\\Entity\\User');
 
         $this->assertEquals($repo1, $repo2);
+    }
+
+    function testBrokenCustomRepo()
+    {
+        $this->setExpectedException('Exception', 'Requested repository class LRezek\\Arachnid\\Tests\\Repo\\BrokenRepo does not extend the base repository class.');
+
+        self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\UserBrokenRepo');
     }
 
     //*****************************************************

@@ -393,6 +393,105 @@ class ArachnidTest extends TestLogger
 
         $rel = ArachnidTest::$arachnid->reload($rel);
     }
+    function testNodeReloadWithoutCache()
+    {
+        //Make node
+        $usr = new Entity\User;
+        $usr->setFirstName('Arnold');
+        $usr->setLastName('Schwarzenegger');
+        $usr->setTestId($this->id);
+
+        //Flush it
+        ArachnidTest::$arachnid->persist($usr);
+        ArachnidTest::$arachnid->flush();
+
+        //Reload it
+        $usr = ArachnidTest::$arachnid->reload($usr);
+
+        //Save the id
+        $id = $usr->getId();
+
+        //Clear the cache
+        self::$arachnid->clearCache();
+
+        //Remake the node, but add the ID
+        $usr = new Entity\User;
+        $usr->setFirstName('Arnold');
+        $usr->setLastName('Schwarzenegger');
+        $usr->setTestId($this->id);
+        $usr->setId($id);
+
+        //Do the reload
+        $usr = ArachnidTest::$arachnid->reload($usr);
+
+        foreach(class_implements(get_class($usr)) as $key => $val)
+        {
+            if($val != 'LRezek\\Arachnid\\Proxy\\Entity')
+            {
+                $this->fail();
+            }
+        }
+
+        $this->assertEquals("Arnold", $usr->getFirstName());
+        $this->assertEquals("Schwarzenegger", $usr->getLastName());
+        $this->assertEquals($this->id, $usr->getTestId());
+    }
+    function testRelationReloadWithoutCache()
+    {
+        //Set it all up
+        $usr1 = new Entity\User;
+        $usr2 = new Entity\User;
+        $rel = new Entity\FriendsWith();
+        $usr1->setFirstName('Arnold');
+        $usr1->setLastName('Schwarzenegger');
+        $usr1->setTestId($this->id);
+        $usr2->setFirstName('Sean');
+        $usr2->setLastName('Connery');
+        $usr2->setTestId($this->id);
+        $rel->setTo($usr2);
+        $rel->setFrom($usr1);
+        $rel->setSince("1989");
+
+        //Flush it
+        ArachnidTest::$arachnid->persist($rel);
+        ArachnidTest::$arachnid->flush();
+
+        //Reload
+        $rel = ArachnidTest::$arachnid->reload($rel);
+
+        //Save the id
+        $id = $rel->getId();
+
+        //Clear the cache
+        self::$arachnid->clearCache();
+
+        //Remake the relation
+        $rel = new Entity\FriendsWith();
+        $rel->setTo($usr2);
+        $rel->setFrom($usr1);
+        $rel->setSince("1989");
+        $rel->setId($id);
+
+        //Reload it
+        $rel = ArachnidTest::$arachnid->reload($rel);
+
+        foreach(class_implements(get_class($rel)) as $key => $val)
+        {
+            if($val != 'LRezek\\Arachnid\\Proxy\\Entity')
+            {
+                $this->fail();
+            }
+        }
+
+        $this->assertEquals("1989", $rel->getSince());
+
+        //Try lazy loading
+        $from = $rel->getFrom();
+        $to = $rel->getTo();
+
+        $this->assertEquals('Arnold', $from->getFirstName());
+        $this->assertEquals('Sean', $to->getFirstName());
+    }
 
     //*****************************************************
     //***** CONSTRUCTION TESTS ****************************

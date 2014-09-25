@@ -191,7 +191,8 @@ class QueryTest extends TestLogger
         $timeElapsed = null;
         $paramsArray = null;
 
-        self::$arachnid->registerEvent(Arachnid::QUERY_RUN, function (\Everyman\Neo4j\Cypher\Query $query, $parameters, $time) use (& $queryObj, & $timeElapsed, & $paramsArray) {
+        //May as well test the alternate event registration notation here
+        self::$arachnid->register_event(Arachnid::QUERY_RUN, function (\Everyman\Neo4j\Cypher\Query $query, $parameters, $time) use (& $queryObj, & $timeElapsed, & $paramsArray) {
             $queryObj = $query;
             $timeElapsed = $time;
             $paramsArray = $parameters;
