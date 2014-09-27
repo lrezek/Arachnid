@@ -45,7 +45,7 @@ class UserDifferentPropertyFormats
     protected $garbage;
 
     /**
-     * @OGM\Property(format="class")
+     * @OGM\Property(format="object")
      */
     protected $class;
 

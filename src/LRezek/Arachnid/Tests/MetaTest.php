@@ -394,7 +394,7 @@ class MetaTest extends \PHPUnit_Framework_TestCase
         $this->fail();
 
     }
-    function testClassProperty() {
+    function testObjectProperty() {
 
         $repo = new MetaRepository;
         $meta = $repo->fromClass('LRezek\\Arachnid\\Tests\\Entity\\UserDifferentPropertyFormats');
@@ -408,7 +408,7 @@ class MetaTest extends \PHPUnit_Framework_TestCase
 
         foreach($meta->getProperties() as $prop)
         {
-            if($prop->getFormat() == "class")
+            if($prop->getFormat() == "object")
             {
                 //Test the get
                 if($prop->getValue($usr) != $encoded)

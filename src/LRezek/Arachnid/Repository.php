@@ -126,13 +126,25 @@ class Repository
     }
 
     /**
-     * Creates a Cypher query.
+     * Creates a cypher query.
+     *
+     * This class has this so repos that extend it can do query calls with $this->createCypherQuery()
      *
      * @return Query\Cypher
      */
     protected function createCypherQuery()
     {
         return $this->entityManager->createCypherQuery();
+    }
+
+    /**
+     * Alternate notation for creating Cypher query,
+     *
+     * @return Query\Cypher
+     */
+    protected function create_cypher_query()
+    {
+        return $this->createCypherQuery();
     }
 
     /**
@@ -145,13 +157,18 @@ class Repository
      */
     public function findOneBy(array $criteria)
     {
+        //Make sure there is a criteria
+        if(count($criteria) == 0)
+        {
+            throw new Exception("Please supply at least one criteria to findOneBy().");
+        }
 
         //If this repository is for a node
         if($this->meta instanceof Node)
         {
             $query = $this->createQuery($criteria);
 
-            if ($node = $this->getIndex()->queryOne($query))
+            if($node = $this->getIndex()->queryOne($query))
             {
                 return $this->entityManager->loadNode($node);
             }
@@ -191,11 +208,6 @@ class Repository
                 $result_sets[] = $this->getIndex()->query($query);
             }
 
-            if(count($result_sets) == 0)
-            {
-                throw new Exception("Please supply at least one criteria to findOneBy()");
-            }
-
             //Intersect the 3 potential result sets (relations <- start nodes, relations -> end nodes, relations from properties query )
             $results = count($result_sets) > 1 ? call_user_func_array('array_intersect', $result_sets) : $result_sets[0];
 
@@ -230,6 +242,11 @@ class Repository
      */
     public function findBy(array $criteria)
     {
+        //Make sure there is a criteria
+        if(count($criteria) == 0)
+        {
+            throw new Exception("Please supply at least one criteria to findBy().");
+        }
 
         $collection = new ArrayCollection();
 
@@ -253,6 +270,7 @@ class Repository
             //Criteria to use for query
             $query_criteria = array();
 
+            //Generate the query criteria
             foreach($criteria as $k => $v)
             {
                 $key = Meta\Reflection::normalizeProperty($k);
@@ -276,12 +294,6 @@ class Repository
             {
                 $query = $this->createQuery($query_criteria);
                 $result_sets[] = $this->getIndex()->query($query);
-            }
-
-            //No results at all (means no start node/end node or properties) (this shouldn't be called without criteria... ever)
-            if(count($result_sets) == 0)
-            {
-                throw new Exception("Please supply at least one criteria to findBy()");
             }
 
             //Intersect the 3 potential result sets (if they are there)
@@ -312,23 +324,21 @@ class Repository
     /**
      * Calls the Lucene Query Processor to build the query.
      *
-     * @param array $criteria An array of search criterion.
+     * @param array $criteria An array of search criterion (cannot and should not be empty).
      * @throws \InvalidArgumentException If there are no search criterion.
      * @return string The query string.
      * @api
      */
-    private function createQuery(array $criteria = array())
+    private function createQuery(array $criteria)
     {
-        if(!empty($criteria))
-        {
-            $queryProcessor = new LuceneQueryProcessor();
+        $queryProcessor = new LuceneQueryProcessor();
 
-            foreach($criteria as $key => $value) {
-                $queryProcessor->addQueryTerm($key, $value);
-            }
-            return $queryProcessor->getQuery();
+        foreach($criteria as $key => $value)
+        {
+            $queryProcessor->addQueryTerm($key, $value);
         }
-        throw new \InvalidArgumentException('The criteria passed to the find** method can not be empty');
+
+        return $queryProcessor->getQuery();
     }
 
     /**
@@ -496,20 +506,20 @@ class Repository
         //Node properties only have indexing problems
         if($this->meta instanceof Node)
         {
-            throw new Exception("Property $property is not indexed.");
+            throw new Exception("Property $property is not indexed or does not exist in {$this->meta->getName()}.");
         }
 
         //Relations have start/end or indexing problems
         else
         {
-            throw new Exception("Property $property is not indexed or the start/end of a relationship");
+            throw new Exception("Property noName is either not indexed, not a start/end, or does not exist in {$this->meta->getName()}.");
         }
     }
 
     /**
-     * Retrieves relations by start/end node property
+     * Retrieves relations by start/end node property. Should only be run on a relation repository.
      *
-     * @param $prop
+     * @param string $prop Name of start/end property.
      * @param mixed $node The argument supplied.
      * @throws Exception If called on a node repository.
      * @throws \InvalidArgumentException If anything other than a node is supplied and searched for, if the node is not saved, or if the property is not a start/end property.
@@ -518,15 +528,10 @@ class Repository
      */
     private function getRelationsByNode($prop, $node)
     {
-        if(! ($this->meta instanceof Relation))
-        {
-            throw new Exception('Cannot call findByStartNode on a node repository.');
-        }
-
         //Get meta info for the node
         $entity_meta = $this->entityManager->getMetaRepository()->fromClass(get_class($node));
 
-        if(! $entity_meta instanceof Node)
+        if(!($entity_meta instanceof Node))
         {
             throw new \InvalidArgumentException("You must supply a node to search for relations by node.");
         }
@@ -534,7 +539,7 @@ class Repository
         //Get node primary key
         $id = $entity_meta->getPrimaryKey()->getValue($node);
 
-        if(! $id)
+        if(!$id)
         {
             throw new \InvalidArgumentException('Node must be saved to find its relations.');
         }
@@ -549,14 +554,9 @@ class Repository
         }
 
         //Looking for end
-        elseif($prop == $this->meta->getEnd()->getName())
-        {
-            $dir = Relationship::DirectionIn;
-        }
-
         else
         {
-            throw new \InvalidArgumentException("Property $prop is not a start/end node property.");
+            $dir = Relationship::DirectionIn;
         }
 
         //Grab the nodes relations (of this type)

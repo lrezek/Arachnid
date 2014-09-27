@@ -6,7 +6,6 @@ use LRezek\Arachnid\Arachnid;
 use LRezek\Arachnid\Tests\Entity\FriendsWith;
 use LRezek\Arachnid\Tests\Entity\User;
 use org\bovigo\vfs\vfsStream;
-use LRezek\Arachnid\Exception;
 
 class RepositoryTest extends TestLogger
 {
@@ -127,6 +126,9 @@ class RepositoryTest extends TestLogger
         $query->getResultSet();
     }
 
+    //*****************************************************
+    //***** BASIC TESTS ***********************************
+    //*****************************************************
     function testRepositoryCreation()
     {
         //Standard camelCase
@@ -136,6 +138,20 @@ class RepositoryTest extends TestLogger
         $repo2 = self::$arachnid->get_repository('LRezek\\Arachnid\\Tests\\Entity\\User');
 
         $this->assertEquals($repo1, $repo2);
+    }
+
+    function testCustomRepo()
+    {
+        //Make the repo and grab a query the standard way
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\UserCustomRepo');
+        $query = self::$arachnid->createCypherQuery();
+
+        //Use custom repo to get queries in both notations
+        $q1 = $repo->getQuery();
+        $q2 = $repo->get_query();
+
+        $this->assertEquals($query, $q1);
+        $this->assertEquals($query, $q2);
     }
 
     function testBrokenCustomRepo()
@@ -364,7 +380,7 @@ class RepositoryTest extends TestLogger
                 break;
 
             //Ellen Page
-            case 2008:
+            case 2007:
                 $this->assertEquals("Ellen", $start->getFirstName());
                 $this->assertEquals("Page", $start->getLastName());
                 break;
@@ -499,7 +515,7 @@ class RepositoryTest extends TestLogger
                 break;
 
             //Ellen Page
-            case 2008:
+            case 2007:
                 $this->assertEquals("Ellen", $start->getFirstName());
                 $this->assertEquals("Page", $start->getLastName());
                 break;
@@ -509,6 +525,44 @@ class RepositoryTest extends TestLogger
                 break;
         }
 
+    }
+
+    function testNodeFindOneByNonExisting()
+    {
+        $t = microtime(true);
+
+        //Find said node
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User');
+
+        $user = $repo->findOneBy(array("firstName" => 'non-existing'));
+
+        $this->printTime(__FUNCTION__, (microtime(true) - $t));
+
+        //Validate user
+        $this->assertNull($user);
+    }
+    function testRelationFindOneByNonExisting()
+    {
+        $t = microtime(true);
+
+        //Find said relation
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith');
+
+        $rel = $repo->findOneBy(array("since" => 'non-existing'));
+
+        $this->printTime(__FUNCTION__, (microtime(true) - $t));
+
+        //Validate user
+        $this->assertNull($rel);
+    }
+
+    function testFindOneByNothing()
+    {
+        $this->setExpectedException('Exception', "Please supply at least one criteria to findOneBy().");
+
+        //Try to find a node without any criteria
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User');
+        $user = $repo->findOneBy(array());
     }
 
     //*****************************************************
@@ -889,6 +943,44 @@ class RepositoryTest extends TestLogger
 
     }
 
+    function testNodeFindByNonExisting()
+    {
+        $t = microtime(true);
+
+        //Find said node
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User');
+
+        $users = $repo->findBy(array("firstName" => 'non-existing'));
+
+        $this->printTime(__FUNCTION__, (microtime(true) - $t));
+
+        //Validate user
+        $this->assertEmpty(count($users));
+    }
+    function testRelationFindByNonExisting()
+    {
+        $t = microtime(true);
+
+        //Find said relation
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith');
+
+        $rels = $repo->findBy(array("since" => 'non-existing'));
+
+        $this->printTime(__FUNCTION__, (microtime(true) - $t));
+
+        //Validate user
+        $this->assertEmpty($rels);
+    }
+
+    function testFindByNothing()
+    {
+        $this->setExpectedException('Exception', "Please supply at least one criteria to findBy().");
+
+        //Try to find a node without any criteria
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User');
+        $user = $repo->findBy(array());
+    }
+
     //*****************************************************
     //***** FIND ALL TESTS ********************************
     //*****************************************************
@@ -951,12 +1043,42 @@ class RepositoryTest extends TestLogger
 
         $t = microtime(true);
 
-        $rels = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\Likes')->findAll()->toArray();
+        $rels = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\Likes')->find_all()->toArray();
 
         $this->printTime(__FUNCTION__, (microtime(true) - $t));
 
         $this->assertEquals(count($rels), 2);
 
+    }
+
+    //*****************************************************
+    //***** MISC TESTS ************************************
+    //*****************************************************
+    function testNodeFindByGarbageProperty()
+    {
+        $this->setExpectedException('Exception', "Property noName is not indexed or does not exist in LRezek\\Arachnid\\Tests\\Entity\\User.");
+
+        //Find a node without a real property
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User');
+        $repo->findByNoName("x");
+    }
+    function testRelationFindByGarbageProperty()
+    {
+        $this->setExpectedException('Exception', "Property noName is either not indexed, not a start/end, or does not exist in LRezek\\Arachnid\\Tests\\Entity\\FriendsWith.");
+
+        //Find a node without a real property
+        $repo = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith');
+        $repo->findByNoName("x");
+    }
+    function testRelationFindByInvalidNode()
+    {
+        $this->setExpectedException('InvalidArgumentException', "You must supply a node to search for relations by node.");
+        $rels = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findByFrom(new Entity\FriendsWith());
+    }
+    function testRelationFindByUnsavedNode()
+    {
+        $this->setExpectedException('InvalidArgumentException', "Node must be saved to find its relations.");
+        $rels = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\FriendsWith')->findByFrom(new Entity\User());
     }
 
 }

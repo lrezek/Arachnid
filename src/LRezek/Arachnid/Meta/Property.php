@@ -167,7 +167,7 @@ class Property
                 return $raw;
 
             //Serialize classes and arrays before putting them in the DB
-            case 'class':
+            case 'object':
             case 'array':
                 return serialize($raw);
 
@@ -209,7 +209,7 @@ class Property
                 break;
 
             //Unserialize classes and arrays before putting them back in the entity.
-            case 'class':
+            case 'object':
             case 'array':
                 $this->property->setValue($entity, unserialize($value));
                 break;
