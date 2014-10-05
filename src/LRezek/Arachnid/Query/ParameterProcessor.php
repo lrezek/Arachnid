@@ -109,11 +109,6 @@ class ParameterProcessor
                     $string = str_replace(":$key", '{' . $key . '}', $string);
                 }
 
-                else
-                {
-                    $string = str_replace(":$key", $key, $string);
-                }
-
                 return true;
             }
         });

@@ -81,6 +81,12 @@ class Repository
             $class = $class->getParentClass();
         }
 
+        //Ignore annoations, get meta right out of regular class
+        if($class->isSubclassOf('LRezek\\Arachnid\\Entity\\Entity'))
+        {
+            return;
+        }
+
         $node = $this->reader->getClassAnnotation($class, 'LRezek\\Arachnid\\Annotation\\Node');
         $relation = $this->reader->getClassAnnotation($class, 'LRezek\\Arachnid\\Annotation\\Relation');
 
