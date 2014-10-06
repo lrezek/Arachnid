@@ -492,17 +492,6 @@ class Cypher
         //Trim spaces from the term
         $value = trim($value);
 
-        //Clean it up
-        if(strpos($value, ' '))
-        {
-            $fl = mb_substr($value, 0, 1, 'UTF-8');
-
-            if ($fl != '(')
-            {
-                $value = '"' . $value . '"';
-            }
-        }
-
         //If the query isn't empty, add an AND
         if($this->query !== '')
         {
