@@ -13,7 +13,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Everyman\Neo4j\Relationship;
 use LRezek\Arachnid\Meta\Node;
 use LRezek\Arachnid\Meta\Relation;
-use LRezek\Arachnid\Query\LuceneQueryProcessor;
+use LRezek\Arachnid\Query\Cypher;
 
 /**
  * Contains base code for repositories.
@@ -331,14 +331,14 @@ class Repository
      */
     private function createQuery(array $criteria)
     {
-        $queryProcessor = new LuceneQueryProcessor();
+        $query = new Cypher($this->entityManager);
 
         foreach($criteria as $key => $value)
         {
-            $queryProcessor->addQueryTerm($key, $value);
+            $query->addAndTerm($key, $value);
         }
 
-        return $queryProcessor->getQuery();
+        return $query->getQuery();
     }
 
     /**
@@ -377,7 +377,6 @@ class Repository
                     //Return the loaded node object
                     return $this->entityManager->loadNode($node);
                 }
-
             }
 
             //Repository is for a relation

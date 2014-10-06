@@ -9,6 +9,7 @@
  */
 
 namespace LRezek\Arachnid\Query;
+use Doctrine\Common\Collections\ArrayCollection;
 use Everyman\Neo4j\Node;
 use Everyman\Neo4j\Relationship;
 use Lrezek\Arachnid\Arachnid;
@@ -24,6 +25,8 @@ use Lrezek\Arachnid\Arachnid;
  */
 class Cypher
 {
+    const STRICT = 'STRICT_MODE';
+
     /** @var \LRezek\Arachnid\Arachnid The entity manager. */
     private $em;
 
@@ -45,8 +48,11 @@ class Cypher
     /** @var  int Mimics the limit clause. */
     private $limit;
 
-    /** @var \LRezek\Arachnid\Query\ParameterProcessor The parameter processor to use. */
-    private $processor;
+    /** @var array Array of Query parameters. */
+    private $parameters = array();
+
+    /** @var string The actual cypher query. */
+    private $query = '';
 
     /**
      * Initializes the cypher query with an entity manager and a nbew parameter processor.
@@ -56,7 +62,6 @@ class Cypher
     public function __construct(Arachnid $em)
     {
         $this->em = $em;
-        $this->processor = new ParameterProcessor(ParameterProcessor::CYPHER);
     }
 
     /**
@@ -253,7 +258,17 @@ class Cypher
      */
     public function set($name, $value)
     {
-        $this->processor->setParameter($name, $value);
+        //If it's an object, save its ID as the parameter
+        if(is_object($value) && method_exists($value, 'getId'))
+        {
+            $this->parameters[$name] = $value->getId();
+        }
+
+        //Just save the parameter
+        else
+        {
+            $this->parameters[$name] = $value;
+        }
 
         return $this;
     }
@@ -290,13 +305,13 @@ class Cypher
     /**
      * Executes the query and returns a list of results, as entities.
      *
-     * @return \Doctrine\Common\Collections\ArrayCollection The query result.
+     * @return ArrayCollection The query result.
      * @api
      */
     public function getList()
     {
         $result = $this->execute();
-        $list = new \Doctrine\Common\Collections\ArrayCollection;
+        $list = new ArrayCollection;
 
         //Convert all of them to entities
         foreach ($result as $row)
@@ -310,7 +325,7 @@ class Cypher
     /**
      * Alternate notation for getList().
      *
-     * @return \Doctrine\Common\Collections\ArrayCollection The query result.
+     * @return ArrayCollection The query result.
      * @api
      */
     public function get_list()
@@ -321,13 +336,13 @@ class Cypher
     /**
      * Executes the query and returns a array collection of assoc. arrays, without converting them to entities.
      *
-     * @return \Doctrine\Common\Collections\ArrayCollection The query result.
+     * @return ArrayCollection The query result.
      * @api
      */
     public function getResult()
     {
         $result = $this->execute();
-        $list = new \Doctrine\Common\Collections\ArrayCollection;
+        $list = new ArrayCollection;
 
         //Loop through results
         foreach ($result as $row)
@@ -350,7 +365,7 @@ class Cypher
     /**
      * Alternate notation for getResult().
      *
-     * @return \Doctrine\Common\Collections\ArrayCollection The query result.
+     * @return ArrayCollection The query result.
      * @api
      */
     public function get_result()
@@ -365,46 +380,44 @@ class Cypher
      */
     private function execute()
     {
-        $query = '';
-
         //Add the start (it it's set)
         if(count($this->start))
         {
-            $query .= 'start ' . implode(', ', $this->start) . PHP_EOL;
+            $this->query .= 'start ' . implode(', ', $this->start) . PHP_EOL;
         }
 
         //Add matches
         if(count($this->match))
         {
-            $query .= 'match ' . implode(', ', $this->match) . PHP_EOL;
+            $this->query .= 'match ' . implode(', ', $this->match) . PHP_EOL;
         }
 
         //Add where's
         if(count($this->where))
         {
-            $query .= 'where (' . implode(') AND (', $this->where) . ')' . PHP_EOL;
+            $this->query .= 'where (' . implode(') AND (', $this->where) . ')' . PHP_EOL;
         }
 
         //Add returns
         if(count($this->return))
         {
-            $query .= 'return ' . implode(', ', $this->return) . PHP_EOL;
+            $this->query .= 'return ' . implode(', ', $this->return) . PHP_EOL;
         }
 
         if (count($this->order))
         {
-            $query .= 'order by ' . implode(', ', $this->order) . PHP_EOL;
+            $this->query .= 'order by ' . implode(', ', $this->order) . PHP_EOL;
         }
 
         if ($this->limit)
         {
-            $query .= 'limit ' . $this->limit . PHP_EOL;
+            $this->query .= 'limit ' . $this->limit . PHP_EOL;
         }
 
-        $this->processor->setQuery($query);
-        $parameters = $this->processor->process();
+        //Process the parameters
+        $this->parameters = $this->processParameters();
 
-        return $this->em->cypherQuery($this->processor->getQuery(), $parameters);
+        return $this->em->cypherQuery($this->query, $this->parameters);
     }
 
     /**
@@ -429,5 +442,84 @@ class Cypher
         {
             return $value;
         }
+    }
+
+    /**
+     * Processes parameters and returns an array of them afterwards.
+     *
+     * @return array The processed parameters.
+     */
+    private function processParameters()
+    {
+        $parameters = $this->parameters;
+        $string = $this->query;
+
+        $string = str_replace('[:', '[;;', $string);
+
+        $parameters = array_filter($parameters, function ($value) use (& $parameters, & $string)
+        {
+            $key = key($parameters);
+            next($parameters);
+
+            if (is_numeric($value))
+            {
+                $string = str_replace(":$key", $value, $string);
+                return false;
+            }
+
+            else
+            {
+                $string = str_replace(":$key", '{' . $key . '}', $string);
+                return true;
+            }
+        });
+
+        $string = str_replace('[;;', '[:', $string);
+
+        $this->query = $string;
+        return $parameters;
+    }
+
+    /**
+     * Adds a query term to the query, with AND. This should only be used by Arachnid, as it takes a term of ANDS and
+     * hands it to everyman index->query.
+     *
+     * @param string $term The term to add.
+     * @param string $value The value to add for the term.
+     */
+    public function addAndTerm($term, $value)
+    {
+        //Trim spaces from the term
+        $value = trim($value);
+
+        //Clean it up
+        if(strpos($value, ' '))
+        {
+            $fl = mb_substr($value, 0, 1, 'UTF-8');
+
+            if ($fl != '(')
+            {
+                $value = '"' . $value . '"';
+            }
+        }
+
+        //If the query isn't empty, add an AND
+        if($this->query !== '')
+        {
+            $this->query .= ' AND ';
+        }
+
+        //Add the term to the query
+        $this->query .= $term.':'.$value;
+    }
+
+    /**
+     * Gets the query string.
+     *
+     * @return string
+     */
+    public function getQuery()
+    {
+        return $this->query;
     }
 }
