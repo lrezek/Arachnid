@@ -423,7 +423,7 @@ class RepositoryTest extends TestLogger
     function testRelationFindOneByStartNodeCriteria()
     {
 
-        //Find the david node
+        //Find the brad node
         $brad = self::$arachnid->getRepository('LRezek\\Arachnid\\Tests\\Entity\\User')->findOneByFirstName('Brad');
 
         $t = microtime(true);
