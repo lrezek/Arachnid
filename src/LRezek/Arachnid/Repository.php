@@ -13,7 +13,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Everyman\Neo4j\Relationship;
 use LRezek\Arachnid\Meta\Node;
 use LRezek\Arachnid\Meta\Relation;
-use LRezek\Arachnid\Query\Cypher;
+use LRezek\Arachnid\Query\Index as IndexQuery;
 
 /**
  * Contains base code for repositories.
@@ -166,7 +166,7 @@ class Repository
         //If this repository is for a node
         if($this->meta instanceof Node)
         {
-            $query = $this->createQuery($criteria);
+            $query = $this->createIndexQuery($criteria);
 
             if($node = $this->getIndex()->queryOne($query))
             {
@@ -204,7 +204,7 @@ class Repository
             //Do the query
             if(count($query_criteria) > 0)
             {
-                $query = $this->createQuery($query_criteria);
+                $query = $this->createIndexQuery($query_criteria);
                 $result_sets[] = $this->getIndex()->query($query);
             }
 
@@ -253,7 +253,7 @@ class Repository
         //If this repository is for a node
         if($this->meta instanceof Node)
         {
-            $query = $this->createQuery($criteria);
+            $query = $this->createIndexQuery($criteria);
 
             foreach($this->getIndex()->query($query) as $node)
             {
@@ -292,7 +292,7 @@ class Repository
             //Do the query
             if(count($query_criteria) > 0)
             {
-                $query = $this->createQuery($query_criteria);
+                $query = $this->createIndexQuery($query_criteria);
                 $result_sets[] = $this->getIndex()->query($query);
             }
 
@@ -322,16 +322,16 @@ class Repository
     }
 
     /**
-     * Calls the Lucene Query Processor to build the query.
+     * Creates an index query out of the supplied criteria.
      *
      * @param array $criteria An array of search criterion (cannot and should not be empty).
      * @throws \InvalidArgumentException If there are no search criterion.
      * @return string The query string.
      * @api
      */
-    private function createQuery(array $criteria)
+    private function createIndexQuery(array $criteria)
     {
-        $query = new Cypher($this->entityManager);
+        $query = new IndexQuery();
 
         foreach($criteria as $key => $value)
         {
