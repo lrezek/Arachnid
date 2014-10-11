@@ -124,7 +124,6 @@ class Arachnid
 
         //Get the date generator function to use
         $this->dateGenerator = $configuration->getDateGenerator();
-
     }
 
     /**
