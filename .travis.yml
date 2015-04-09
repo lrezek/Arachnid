@@ -5,13 +5,18 @@ php:
   - 5.4
   - 5.5
 
-# Install and start Neo4J
 before_install:
-  - sudo wget -O - http://debian.neo4j.org/neotechnology.gpg.key| sudo apt-key add - # Import  signing key
-  - echo 'deb http://debian.neo4j.org/repo stable/' | sudo tee -a /etc/apt/sources.list.d/neo4j.list # Create an Apt sources.list file
+
+  # Install Neo4J
+  - sudo wget -O - http://debian.neo4j.org/neotechnology.gpg.key| sudo apt-key add -
+  - echo 'deb http://debian.neo4j.org/repo stable/' | sudo tee -a /etc/apt/sources.list.d/neo4j.list
   - sudo apt-get update -qq
   - sudo apt-get install -qq neo4j
   - sudo /etc/init.d/neo4j-service restart
+
+  # Install a REST client and change the Neo4J password from the default to password
+  - sudo apt-get install httpie
+  - sudo http localhost:7474/user/neo4j/password password=neo4j new_password=mypass
 
 # Install Composer an update dependencies
 before_script:
