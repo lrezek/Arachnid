@@ -27,4 +27,4 @@ You can generate PHP Documentor docs by running `vendor/bin/phpdoc` while in the
 
 You can run unit tests on the library by running `vendor/bin/phpunit` while in the root folder of this repository.
 
-For full documentation, as well as usage examples, please refer to the [wiki](https://github.com/lrezek/Arachnid/wiki/Table-of-Contents).
+For full documentation, as well as usage examples, please refer to the [wiki](https://github.com/lrezek/Arachnid/wiki).
