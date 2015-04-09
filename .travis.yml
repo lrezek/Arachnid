@@ -15,7 +15,7 @@ before_install:
   - sudo /etc/init.d/neo4j-service restart
 
   # Install a REST client and change the Neo4J password from the default to password
-  - sudo apt-get install httpie
+  - sudo apt-get install -qq httpie
   - sudo http localhost:7474/user/neo4j/password password=neo4j new_password=mypass
 
 # Install Composer an update dependencies
