@@ -41,11 +41,11 @@ class Configuration
     /** @var \Doctrine\Common\Annotations\AnnotationReader Annotation reader to use for meta information. */
     private $annotationReader;
 
-    /** @var string Username to use for accessing neo4j DB. Default is null. */
-    private $username;
+    /** @var string Username to use for accessing neo4j DB. Default is neo4j. */
+    private $username = 'neo4j';
 
-    /** @var string Password to use for accessing neo4j DB. Default is null. */
-    private $password;
+    /** @var string Password to use for accessing neo4j DB. Default is neo4j. */
+    private $password = 'neo4j';
 
     /** @var callable Date generation function to use. */
     private $dateGenerator;
