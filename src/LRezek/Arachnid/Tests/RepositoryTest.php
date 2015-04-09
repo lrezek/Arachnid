@@ -21,8 +21,8 @@ class RepositoryTest extends TestLogger
             'transport' => 'curl', // or 'stream'
             'host' => 'localhost',
             'port' => 7474,
-            'username' => null,
-            'password' => null,
+            'username' => 'neo4j',
+            'password' => 'password',
             'proxy_dir' => vfsStream::url('tmp'),
             'debug' => true, // Force proxy regeneration on each request
             // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production

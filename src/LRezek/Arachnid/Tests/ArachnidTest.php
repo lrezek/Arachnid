@@ -496,11 +496,13 @@ class ArachnidTest extends TestLogger
     //*****************************************************
     //***** CONSTRUCTION TESTS ****************************
     //*****************************************************
-    function testNullConfiguration(){
 
-        $a = new Arachnid(null);
-        $a->flush();
-    }
+    // This no longer works because neo4j requires a password
+//    function testNullConfiguration(){
+//
+//        $a = new Arachnid(null);
+//        $a->flush();
+//    }
     function testGarbageConfiguration() {
 
         $this->setExpectedException('Exception');

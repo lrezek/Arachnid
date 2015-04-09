@@ -117,7 +117,8 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
             'date_generator' => function(){
                 $currentDate = new \DateTime("04:08");
                 return $currentDate->format('H:i');
-            }
+            },
+            'password' => 'password'
         ));
 
         //Test current date generation

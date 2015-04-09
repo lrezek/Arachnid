@@ -24,8 +24,8 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
             'transport' => 'curl', // or 'stream'
             'host' => 'localhost',
             'port' => 7474,
-            'username' => null,
-            'password' => null,
+            'username' => 'neo4j',
+            'password' => 'password',
             'proxy_dir' => vfsStream::url('tmp'),
             'debug' => true, // Force proxy regeneration on each request
             // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
@@ -62,8 +62,8 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
             'transport' => 'curl', // or 'stream'
             'host' => 'localhost',
             'port' => 7474,
-            'username' => null,
-            'password' => null,
+            'username' => 'neo4j',
+            'password' => 'password',
             'proxy_dir' => vfsStream::url('tmp/noCreate').'/new',
             'debug' => true, // Force proxy regeneration on each request
             // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
@@ -90,8 +90,8 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
             'transport' => 'curl', // or 'stream'
             'host' => 'localhost',
             'port' => 7474,
-            'username' => null,
-            'password' => null,
+            'username' => 'neo4j',
+            'password' => 'password',
             'proxy_dir' => vfsStream::url('tmp/noWrite'),
             'debug' => true, // Force proxy regeneration on each request
             // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
@@ -117,8 +117,8 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
             'transport' => 'curl', // or 'stream'
             'host' => 'localhost',
             'port' => 7474,
-            'username' => null,
-            'password' => null,
+            'username' => 'neo4j',
+            'password' => 'password',
             'proxy_dir' => vfsStream::url('tmp/write').'/new',
             'debug' => true, // Force proxy regeneration on each request
             // 'annotation_reader' => ... // Should be a cached instance of the doctrine annotation reader in production
