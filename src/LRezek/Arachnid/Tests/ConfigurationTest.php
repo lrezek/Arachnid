@@ -12,11 +12,18 @@ use LRezek\Arachnid\Proxy\Factory;
 
 class ConfigurationTest extends \PHPUnit_Framework_TestCase
 {
+    const user = 'neo4j';
+    const password = 'neo4j';
+    const host = 'localhost';
+    const port = 7474;
+
     function testObtainDefaultClient()
     {
         $configuration = new Configuration;
 
-        $this->assertEquals(new Client('localhost', 7474), $configuration->getClient());
+        $transport = (new Transport\Curl(self::host, self::port));
+        $transport->setAuth(self::user, self::password);
+        $this->assertEquals(new Client($transport), $configuration->getClient());
     }
 
     function testSpecifyHost()
@@ -25,7 +32,9 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
             'host' => 'example.com',
         ));
 
-        $this->assertEquals(new Client('example.com', 7474), $configuration->getClient());
+        $transport = (new Transport\Curl('example.com', self::port));
+        $transport->setAuth(self::user, self::password);
+        $this->assertEquals(new Client($transport), $configuration->getClient());
     }
 
     function testSpecifyPort()
@@ -34,7 +43,9 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
             'port' => 7575,
         ));
 
-        $this->assertEquals(new Client('localhost', 7575), $configuration->getClient());
+        $transport = (new Transport\Curl(self::host, 7575));
+        $transport->setAuth(self::user, self::password);
+        $this->assertEquals(new Client($transport), $configuration->getClient());
     }
 
     function testObtainDefaultProxyFactory()
@@ -86,7 +97,9 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
             'transport' => 'curl',
         ));
 
-        $this->assertEquals(new Client(new Transport\Curl('example.com', 7474)), $configuration->getClient());
+        $transport = (new Transport\Curl('example.com', self::port));
+        $transport->setAuth(self::user, self::password);
+        $this->assertEquals(new Client($transport), $configuration->getClient());
     }
 
     function testSpecifyStream()
@@ -96,7 +109,9 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
             'transport' => 'stream',
         ));
 
-        $this->assertEquals(new Client(new Transport\Stream('example.com', 7474)), $configuration->getClient());
+        $transport = (new Transport\Stream('example.com', self::port));
+        $transport->setAuth(self::user, self::password);
+        $this->assertEquals(new Client($transport), $configuration->getClient());
     }
 
     function testSpecifyCredentials()
@@ -106,7 +121,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
             'password' => 'baz',
         ));
 
-        $transport = new Transport\Curl;
+        $transport = (new Transport\Curl(self::host, self::port));
         $transport->setAuth('foobar', 'baz');
         $this->assertEquals(new Client($transport), $configuration->getClient());
     }
@@ -118,7 +133,6 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 $currentDate = new \DateTime("04:08");
                 return $currentDate->format('H:i');
             },
-            'password' => 'password'
         ));
 
         //Test current date generation
