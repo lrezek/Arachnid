@@ -10,15 +10,17 @@ before_install:
   # Prepare apt-get
   - sudo wget -O - http://debian.neo4j.org/neotechnology.gpg.key| sudo apt-key add -
   - echo 'deb http://debian.neo4j.org/repo stable/' | sudo tee -a /etc/apt/sources.list.d/neo4j.list
-  - echo 'deb http://us.archive.ubuntu.com/ubuntu' | sudo tee -a /etc/apt/sources.list.d/universe.list
   - sudo apt-get update -qq
+
+  # Prepare pip for httpie
+  - sudo pip install --upgrade pip setuptools
 
   # Install Neo4J
   - sudo apt-get install -qq neo4j
   - sudo /etc/init.d/neo4j-service restart
 
-  # Install a REST client and change the Neo4J password from the default to password
-  - sudo apt-get install -qq httpie
+  # Install HTTPie REST client and change the Neo4J password from the default to password
+  - sudo pip install --upgrade httpie
   - sudo http localhost:7474/user/neo4j/password password=neo4j new_password=mypass
 
 # Install Composer an update dependencies
