@@ -7,10 +7,13 @@ php:
 
 before_install:
 
-  # Install Neo4J
+  # Prepare apt-get
   - sudo wget -O - http://debian.neo4j.org/neotechnology.gpg.key| sudo apt-key add -
   - echo 'deb http://debian.neo4j.org/repo stable/' | sudo tee -a /etc/apt/sources.list.d/neo4j.list
+  - echo 'deb http://us.archive.ubuntu.com/ubuntu' | sudo tee -a /etc/apt/sources.list.d/universe.list
   - sudo apt-get update -qq
+
+  # Install Neo4J
   - sudo apt-get install -qq neo4j
   - sudo /etc/init.d/neo4j-service restart
 
