@@ -21,7 +21,7 @@ before_install:
 
   # Install HTTPie REST client and change the Neo4J password from the default to password
   - sudo pip install --upgrade httpie
-  - sudo http localhost:7474/user/neo4j/password password=neo4j new_password=mypass
+  - sudo http -a neo4j:neo4j POST http://localhost:7474/user/neo4j/password password=password
 
 # Install Composer an update dependencies
 before_script:
